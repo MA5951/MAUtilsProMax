@@ -71,26 +71,26 @@ public class FieldCentricDrive extends SwerveController {
                                                                                                       // *
                                                                                                       // constants.MAX_ANGULAR_VELOCITY;
 
-        if (RobotContainer.getRobotState() == RobotConstants.FEEDING_IN_MOTION) {
-            if ((PoseEstimator.getCurrentPose().getRotation().getDegrees() < 0
-                    && PoseEstimator.getCurrentPose().getRotation().getDegrees() < -160
-                    && RobotContainer.getDriverController().getRightX(true, 1) > 0
-                    || RobotContainer.getDriverController().getRightX(true, 1) == 0) && DriverStationUtil.getAlliance() == Alliance.Blue) {// ||
-                                                                                       // (PoseEstimator.getCurrentPose().getRotation().getDegrees()
-                                                                                       // < 0 &&
-                                                                                       // PoseEstimator.getCurrentPose().getRotation().getDegrees()
-                                                                                       // > -180 &&
-                                                                                       // RobotContainer.getDriverController().getRightX(true,
-                                                                                       // 1) < 0)
-                speeds.omegaRadiansPerSecond = 0;
-            }
+        // if (RobotContainer.getRobotState() == RobotConstants.FEEDING_IN_MOTION) {
+        //     if ((PoseEstimator.getCurrentPose().getRotation().getDegrees() < 0
+        //             && PoseEstimator.getCurrentPose().getRotation().getDegrees() < -160
+        //             && RobotContainer.getDriverController().getRightX(true, 1) > 0
+        //             || RobotContainer.getDriverController().getRightX(true, 1) == 0) && DriverStationUtil.getAlliance() == Alliance.Blue) {// ||
+        //                                                                                // (PoseEstimator.getCurrentPose().getRotation().getDegrees()
+        //                                                                                // < 0 &&
+        //                                                                                // PoseEstimator.getCurrentPose().getRotation().getDegrees()
+        //                                                                                // > -180 &&
+        //                                                                                // RobotContainer.getDriverController().getRightX(true,
+        //                                                                                // 1) < 0)
+        //         speeds.omegaRadiansPerSecond = 0;
+        //     }
             
             
-        }
+        // }
 
-        if (RobotContainer.getRobotState() == RobotConstants.SHOOTING_UNLOCKED && speeds.vxMetersPerSecond < -0.25 ) {
-            speeds.vxMetersPerSecond /= 2;
-        }
+        // if (RobotContainer.getRobotState() == RobotConstants.SHOOTING_UNLOCKED && speeds.vxMetersPerSecond < -0.25 ) {
+        //     speeds.vxMetersPerSecond /= 2;
+        // }
 
         speeds = ChassisSpeedsUtil.FromFieldToRobot(speeds,
                 Rotation2d.fromDegrees(gyroDataSupplier.get().yaw - angleOffset));
