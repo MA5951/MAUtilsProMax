@@ -24,8 +24,8 @@ public class SwerveConstants {
 
         public static double relSetPoint;
 
-        public static final GainConfig driveGainConfig = new GainConfig().withKV(0.765).withKS(0.23).withKP(0.5);
-        public static final GainConfig turnGainConfig = new GainConfig().withKP(150).withKS(0.23);
+        public static final GainConfig driveGainConfig = new GainConfig().withKV(0.765).withKS(0.23).withKP(0);
+        public static final GainConfig turnGainConfig = new GainConfig().withKP(0).withKS(0.23);
 
         public static final SlewRateLimiter setPointLimiterAbs = new SlewRateLimiter(1);
         public static final SlewRateLimiter setPointLimiterRel = new SlewRateLimiter(1);
@@ -70,8 +70,6 @@ public class SwerveConstants {
                         RobotContainer.getDriverController(), SWERVE_CONSTANTS,
                         () -> Swerve.getInstance().getGyroData());
 
-        public static final AngleAdjustController ANGLE_ADJUST_CONTROLLER = new AngleAdjustController(SWERVE_CONSTANTS,
-                        REL_PID_CONTROLLER);
 
         // Swerve States
         public static final SwerveState NONE = new SwerveState("NONE").withXY(0, 0).withOmega(0);
