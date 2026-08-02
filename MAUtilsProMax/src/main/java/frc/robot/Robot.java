@@ -18,7 +18,7 @@ import frc.robot.Util.Field;
 public class Robot extends DeafultRobot {
   private Command m_autonomousCommand;
   private final RobotContainer m_robotContainer;
-  private TalonFX motor;
+  //private final TalonFX motor;
 
 
 
@@ -27,7 +27,7 @@ public class Robot extends DeafultRobot {
     m_robotContainer = new RobotContainer();
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(-90))));
 
-    motor = new TalonFX(3);
+   // motor = new TalonFX(3);
   }
 
   @Override
