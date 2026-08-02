@@ -16,8 +16,7 @@ public class RobotContainer extends DeafultRobotContainer{
 
   @Override
   public void configAuto() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'configAuto'");
+    
   }
 
   @Override

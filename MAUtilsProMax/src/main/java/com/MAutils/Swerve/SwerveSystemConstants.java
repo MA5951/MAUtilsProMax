@@ -49,7 +49,11 @@ public class SwerveSystemConstants {
                 L3(6.12, 3),
                 L1Pluse(7.13, 7),
                 L2Pluse(5.9, 8),
-                L3Pluse(5.36, 9);
+                L3Pluse(5.36, 9),
+                L1MK5(7.03,11),
+                L2MK5(6.03,12),
+                L3MK5(5.27,13);
+
 
                 public final double gearRatio;
                 public final int ratioNumber;

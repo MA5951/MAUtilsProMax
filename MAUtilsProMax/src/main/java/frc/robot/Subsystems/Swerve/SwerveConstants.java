@@ -22,48 +22,29 @@ import frc.robot.RobotContainer;
 
 public class SwerveConstants {
 
-        public static double relSetPoint;
 
-        public static final GainConfig driveGainConfig = new GainConfig().withKV(0.765).withKS(0.23).withKP(0);
-        public static final GainConfig turnGainConfig = new GainConfig().withKP(0).withKS(0.23);
+        public static final GainConfig driveGainConfig = new GainConfig().withKV(0).withKS(0).withKP(0);
+        public static final GainConfig turnGainConfig = new GainConfig().withKP(0).withKS(0);
 
         public static final SlewRateLimiter setPointLimiterAbs = new SlewRateLimiter(1);
         public static final SlewRateLimiter setPointLimiterRel = new SlewRateLimiter(1);
 
         // Swerve System Constants
         public static final SwerveSystemConstants SWERVE_CONSTANTS = new SwerveSystemConstants()
-                        .withPyshicalParameters(0.551, 0.551, 65, WheelType.BLACK_TREAD, 3.05)
-                        .withMotors(DCMotor.getKrakenX60Foc(1), DCMotor.getFalcon500(1),
+                        .withPyshicalParameters(0.56165, 0.56165, 65, WheelType.WCP_TREAD, 3.05)
+                        .withMotors(DCMotor.getKrakenX60Foc(1), DCMotor.getKrakenX44(1),
                                         PortMap.SwervePorts.SWERVE_MODULE_IDS,
                                         PortMap.SwervePorts.PIGEON2)
-                        .withMaxVelocityMaxAcceleration(4.9, 10)
+                        .withMaxVelocityMaxAcceleration(5.303, 10)
                         .withOdometryUpdateRate(250)
-                        .withDriveCurrentLimit(55, true)
-                        .withTurningCurrentLimit(50, true).withDriveTuning(driveGainConfig)
+                        .withDriveCurrentLimit(200, true)
+                        .withTurningCurrentLimit(200, true).withDriveTuning(driveGainConfig)
                         .withTurningTuning(turnGainConfig)
-                        .withGearRatio(GearRatio.L2);
+                        .withGearRatio(GearRatio.L2MK5)
+                        .withOptimize(false);
 
         // PID Controllers
-        public static final PIDController ABS_PID_CONTROLLER = new PIDController(0.06, 0, 0)//0.06//0.09
-                        .withContinuesInput(-180, 180)
-                        .withTolerance(5);
-
-        public static final PIDController ABS_PID_MOTION_CONTROLLER = new PIDController(0.11, 0, 0)//0.06//0.09
-                        .withContinuesInput(-180, 180)
-                        .withTolerance(7);
-
-        public static final PIDController REL_PID_CONTROLLER = new PIDController(0.046, 0, 0)
-                        .withContinuesInput(-180, 180)
-                        .withTolerance(2);
-
-        public static final ProfiledPIDController PROFILED_REL_PID_CONTROLLER = new ProfiledPIDController(5, 0, 0,
-                        new Constraints(1000, 3300))// a= 500
-                        .withContinuesInput(-180, 180)
-                        .withTolerance(1.5);
-
-        public static final PathConstraints constraints = new PathConstraints(
-                        4, 3,
-                        Units.degreesToRadians(540), Units.degreesToRadians(720));
+       
 
         // Swerve Drive Controllers
         public static final FieldCentricDrive FIELD_CENTRIC_DRIVE = new FieldCentricDrive(
