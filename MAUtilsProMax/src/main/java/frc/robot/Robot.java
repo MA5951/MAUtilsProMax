@@ -13,6 +13,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import frc.robot.Subsystems.Swerve.SwerveConstants;
 import frc.robot.Util.Field;
 
 public class Robot extends DeafultRobot {
@@ -26,8 +28,8 @@ public class Robot extends DeafultRobot {
     super();
     m_robotContainer = new RobotContainer();
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(-90))));
-
-   // motor = new TalonFX(3);
+    frc.robot.Subsystems.Swerve.Swerve.getInstance();
+    
   }
 
   @Override
@@ -51,6 +53,8 @@ public class Robot extends DeafultRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    CommandScheduler.getInstance().setDefaultCommand(frc.robot.Subsystems.Swerve.Swerve.getInstance(), new frc.robot.Command.SwerveController());
+    frc.robot.Subsystems.Swerve.Swerve.getInstance().isBrake(true);
   }
 
   

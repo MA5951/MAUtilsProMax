@@ -23,8 +23,8 @@ import frc.robot.RobotContainer;
 public class SwerveConstants {
 
 
-        public static final GainConfig driveGainConfig = new GainConfig().withKV(0).withKS(0).withKP(0);
-        public static final GainConfig turnGainConfig = new GainConfig().withKP(0).withKS(0);
+        public static final GainConfig driveGainConfig = new GainConfig().withKV(0).withKS(0).withKP(0.3);
+        public static final GainConfig turnGainConfig = new GainConfig().withKP(10).withKS(0);
 
         public static final SlewRateLimiter setPointLimiterAbs = new SlewRateLimiter(1);
         public static final SlewRateLimiter setPointLimiterRel = new SlewRateLimiter(1);
