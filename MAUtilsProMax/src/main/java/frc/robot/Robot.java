@@ -54,7 +54,6 @@ public class Robot extends DeafultRobot {
       m_autonomousCommand.cancel();
     }
     CommandScheduler.getInstance().setDefaultCommand(frc.robot.Subsystems.Swerve.Swerve.getInstance(), new frc.robot.Command.SwerveController());
-    frc.robot.Subsystems.Swerve.Swerve.getInstance().isBrake(true);
   }
 
   

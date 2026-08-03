@@ -86,7 +86,7 @@ public class SwerveSystemConstants {
         public double BUMPER_WIDTH = WIDTH + 0.16; 
         public double BUMPER_LENGTH = LENGTH + 0.16; 
         public double ROBOT_MASS = 62;
-        public double TURNING_GEAR_RATIO = 150d / 7;
+        public double TURNING_GEAR_RATIO = 287d / 11;// MK5
         public GearRatio DRIVE_GEAR_RATIO = GearRatio.L2;
         public double WHEEL_RADIUS = 0.0508;
         public double WHEEL_CIRCUMFERENCE = 2 * WHEEL_RADIUS * Math.PI;
@@ -98,10 +98,10 @@ public class SwerveSystemConstants {
         public SwerveModuleID[] MODULES_ID_ARRY;
 
         public InvertedValue[] DRIVES_INVERT = new InvertedValue[] {
-                        InvertedValue.Clockwise_Positive,
                         InvertedValue.CounterClockwise_Positive,
                         InvertedValue.Clockwise_Positive,
-                        InvertedValue.CounterClockwise_Positive
+                        InvertedValue.CounterClockwise_Positive,
+                        InvertedValue.Clockwise_Positive
         };
 
         // Piegon

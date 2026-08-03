@@ -126,7 +126,7 @@ public class SwerveModuleTalonFX implements SwerveModuleIO {
         driveTalon.setPosition(0);
 
         turnTalonConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        turnTalonConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        turnTalonConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;// clock wise in mk4i 
         turnTalonConfig.Feedback.SensorToMechanismRatio = constants.TURNING_GEAR_RATIO;
         turnTalonConfig.ClosedLoopGeneral.ContinuousWrap = true;
         turnTalonConfig.CurrentLimits.StatorCurrentLimit = constants.TURNING__CURRENT_LIMIT;
