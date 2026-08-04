@@ -2,7 +2,7 @@ package frc.robot.Subsystems.Swerve;
 
 import com.MAutils.Swerve.Controllers.AngleAdjustController;
 import com.MAutils.Swerve.Controllers.FieldCentricDrive;
-
+import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Swerve.SwerveSystemConstants;
 import com.MAutils.Swerve.SwerveSystemConstants.GearRatio;
 import com.MAutils.Swerve.SwerveSystemConstants.WheelType;
@@ -11,24 +11,30 @@ import com.MAutils.Swerve.Utils.ProfiledPIDController;
 import com.MAutils.Swerve.Utils.SwerveState;
 import com.MAutils.Utils.GainConfig;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.util.GeometryUtil;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import frc.robot.PortMap;
 import frc.robot.RobotContainer;
-
+import frc.robot.Subsystems.Vision.VisionConstants;
+import frc.robot.Util.Field;
 
 public class SwerveConstants {
-
 
         public static final GainConfig driveGainConfig = new GainConfig().withKV(0.7).withKS(0.27).withKP(1);
         public static final GainConfig turnGainConfig = new GainConfig().withKP(55).withKS(0.3);
 
+        private double xDis;
+        private double yDis;
+
         // Swerve System Constants
         public static final SwerveSystemConstants SWERVE_CONSTANTS = new SwerveSystemConstants()
-                        .withPyshicalParameters(0.56165, 0.56165, 65, WheelType.WCP_TREAD, 3.05)
+                        .withPyshicalParameters(0.56165, 0.56165, 27, WheelType.WCP_TREAD, 3.05)
                         .withMotors(DCMotor.getKrakenX60Foc(1), DCMotor.getKrakenX44(1),
                                         PortMap.SwervePorts.SWERVE_MODULE_IDS,
                                         PortMap.SwervePorts.PIGEON2)
@@ -41,13 +47,25 @@ public class SwerveConstants {
                         .withOptimize(false);
 
         // PID Controllers
-       
+        public static final PIDController ABS_PID_CONTROLLER = new PIDController(0.05, 0, 0)
+                        .withContinuesInput(-180, 180)
+                        .withTolerance(5);
+
+        public static final PIDController REL_PID_CONTROLLER = new PIDController(0.05, 0, 0)
+                        .withContinuesInput(-180, 180)
+                        .withTolerance(5);
+
+        public static final PIDController ABS_MOTION_PID_CONTROLLER = new PIDController(0.05, 0, 0)
+                        .withContinuesInput(-180, 180)
+                        .withTolerance(5);
 
         // Swerve Drive Controllers
         public static final FieldCentricDrive FIELD_CENTRIC_DRIVE = new FieldCentricDrive(
                         RobotContainer.getDriverController(), SWERVE_CONSTANTS,
                         () -> Swerve.getInstance().getGyroData());
 
+        public static final AngleAdjustController ANGLE_ADJUST_CONTROLLER = new AngleAdjustController(SWERVE_CONSTANTS,
+                        REL_PID_CONTROLLER);
 
         // Swerve States
         public static final SwerveState NONE = new SwerveState("NONE").withXY(0, 0).withOmega(0);
@@ -56,11 +74,58 @@ public class SwerveConstants {
                         .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.85, 0.35))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
-        
-
         public static final SwerveState FIELD_CENTRIC_40 = new SwerveState("Field Centric 40 Precent")
                         .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.3, 0.20))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
-        
+        public static final SwerveState ABS_CENTERING = new SwerveState("ABS Centering")
+                        .withOnStateEnter(() -> {
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(90);
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+
+                        }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
+
+        public static final SwerveState REL_CENTRING = new SwerveState("REL Centring")
+                        .withOnStateEnter(() -> {
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(REL_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(0);
+                                ANGLE_ADJUST_CONTROLLER
+                                                .withGyroSupplier(() -> VisionConstants.LL.getCameraIO().getTag().txnc);
+                        }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
+
+        public static final SwerveState ABS_UNLOCKED = new SwerveState("Shooting Absolute Unlocked")
+                        .withOnStateEnter(() -> {
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_MOTION_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(() -> getAbsAngleToTargetFuter());
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                                FIELD_CENTRIC_DRIVE.withSclers(0.12, 0.1);
+                        })
+                        .withOmega(ANGLE_ADJUST_CONTROLLER)
+                        .withXY(FIELD_CENTRIC_DRIVE);
+
+        public static double getAbsAngleToTargetFuter() {
+
+                double xDis = Field.getHub().getX()
+                                - poseAdjust(
+                                                PoseEstimator.getPoseLookAhead(1.1,
+                                                                Swerve.getInstance().getChassisSpeeds()),
+                                                VisionConstants.LL_OFFSET).getX();
+                double yDis = Field.getHub().getY()
+                                - poseAdjust(
+                                                PoseEstimator.getPoseLookAhead(1.1,
+                                                                Swerve.getInstance().getChassisSpeeds()),
+                                                VisionConstants.LL_OFFSET).getY();
+                double angle = Math.atan2(yDis, xDis);
+
+                return Math.toDegrees(angle);
+        }
+
+        public static Translation2d poseAdjust(
+                        Pose2d robotPoseField,
+                        Translation2d offsetRobot) {
+                return robotPoseField.getTranslation()
+                                .plus(offsetRobot.rotateBy(robotPoseField.getRotation()));
+        }
+
 }
