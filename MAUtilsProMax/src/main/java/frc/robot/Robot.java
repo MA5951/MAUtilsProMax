@@ -27,7 +27,7 @@ public class Robot extends DeafultRobot {
   public Robot() {
     super();
     m_robotContainer = new RobotContainer();
-    PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(-90))));
+    PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
     
   }

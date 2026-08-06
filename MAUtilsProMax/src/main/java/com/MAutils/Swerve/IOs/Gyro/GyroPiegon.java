@@ -35,7 +35,7 @@ public class GyroPiegon implements GyroIO {
         piegon = new Pigeon2(constants.PIEGEON_CAN_ID.id, constants.PIEGEON_CAN_ID.bus);
 
         piegon.getConfigurator().setYaw(0);
-
+        
         yawAngle = piegon.getYaw(true);
         pitchAngle = piegon.getPitch(false);
         rollAngle = piegon.getRoll(false);
