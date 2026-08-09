@@ -46,6 +46,9 @@ public class Robot extends DeafultRobot {
     shooterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     kickerConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
+    shooterConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
+    kickerConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
+
     shooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     kickerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;    
 
