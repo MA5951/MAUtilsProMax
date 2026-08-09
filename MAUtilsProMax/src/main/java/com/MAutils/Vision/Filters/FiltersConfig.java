@@ -45,4 +45,10 @@ public class FiltersConfig {
 
     /** Minimum trust to consider a measurement useful. */
     public double minAcceptTrust = 0.05;              // ADDED
+
+    public double maxXvelocityMS = 4; // if robot x Linear velocity >  this  => rejects
+    public double maxYvelocityMS = 4; // if robot Y Linear velocity  >  this  => rejects
+    public double maxOvelocityRS = 12; // if robot O velocity  >  this  => rejects Radians per second
+
+
 }
