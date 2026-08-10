@@ -7,7 +7,7 @@ import frc.robot.Util.Field;
 
 public class Vision {
     private static Vision vision;
-    private int[] tag = {26};
+    private int[] tag = Field.ALL_TAGS;
      
     private Vision() {
         VisionSystem.getInstance().setCameras(VisionConstants.LL);

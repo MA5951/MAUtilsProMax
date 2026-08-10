@@ -40,7 +40,6 @@ public class PortMap {
                 new SwerveModuleID(LEFT_FRONT_DRIVE, LEFT_FRONT_TURNING, LEFT_FRONT_ENCODER),
                 new SwerveModuleID(RIGHT_FRONT_DRIVE, RIGHT_FRONT_TURNING, RIGHT_FRONT_ENCODER),
                 new SwerveModuleID(LEFT_BACK_DRIVE, LEFT_BACK_TURNING, LEFT_BACK_ENCODER),
-
                 new SwerveModuleID(RIGHT_BACK_DRIVE, RIGHT_BACK_TURNING, RIGHT_BACK_ENCODER)
         };
 

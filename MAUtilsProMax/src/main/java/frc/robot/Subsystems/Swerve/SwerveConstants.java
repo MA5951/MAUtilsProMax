@@ -2,6 +2,7 @@ package frc.robot.Subsystems.Swerve;
 
 import com.MAutils.Swerve.Controllers.AngleAdjustController;
 import com.MAutils.Swerve.Controllers.FieldCentricDrive;
+import com.MAutils.Swerve.Controllers.XYAdjustControllerPID;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Swerve.SwerveSystemConstants;
 import com.MAutils.Swerve.SwerveSystemConstants.GearRatio;
@@ -11,11 +12,13 @@ import com.MAutils.Swerve.Utils.ProfiledPIDController;
 import com.MAutils.Swerve.Utils.SwerveController;
 import com.MAutils.Swerve.Utils.SwerveState;
 import com.MAutils.Utils.GainConfig;
+import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.GeometryUtil;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -62,6 +65,15 @@ public class SwerveConstants {
                         .withContinuesInput(-180, 180)
                         .withTolerance(3);
 
+        public static final PIDController REL_X_PID_CONTROLLER = new PIDController(3, 0, 0).withTolerance(0.05);// front // 3
+
+        public static final PIDController REL_Y_PID_CONTROLLER = new PIDController(3.3, 0, 0).withTolerance(0.05);
+
+        public static final PIDController ABS_X_PID_CONTROLLER = new PIDController(0, 0, 0).withTolerance(0.05);// front // 3.5
+
+        public static final PIDController ABS_Y_PID_CONTROLLER = new PIDController(2.5, 0, 0).withTolerance(0.05);
+
+
         // Swerve Drive Controllers
         public static final FieldCentricDrive FIELD_CENTRIC_DRIVE = new FieldCentricDrive(
                         RobotContainer.getDriverController(), SWERVE_CONSTANTS,
@@ -70,6 +82,8 @@ public class SwerveConstants {
         public static final AngleAdjustController ANGLE_ADJUST_CONTROLLER = new AngleAdjustController(SWERVE_CONSTANTS,
                         REL_PID_CONTROLLER);
 
+        public static final XYAdjustControllerPID XY_ADJUST_CONTROLLER = new XYAdjustControllerPID(SWERVE_CONSTANTS, REL_X_PID_CONTROLLER,
+         REL_Y_PID_CONTROLLER, ()-> VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
         // Swerve States
         public static final SwerveState NONE = new SwerveState("NONE").withXY(0, 0).withOmega(0);
 
@@ -117,6 +131,33 @@ public class SwerveConstants {
                         })
                         .withOmega(ANGLE_ADJUST_CONTROLLER)
                         .withXY(FIELD_CENTRIC_DRIVE);
+
+
+        public static final SwerveState XY_ADJUST_REL = new SwerveState("XY Adjust REL").withOnStateEnter(() -> {
+                                XY_ADJUST_CONTROLLER.withFieldRelative(true);
+                                XY_ADJUST_CONTROLLER.withXYControllers(REL_X_PID_CONTROLLER, REL_Y_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                                XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()), false);
+                                XY_ADJUST_CONTROLLER.withMeasurment(()-> VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
+                                XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                        })
+                        .withXY(XY_ADJUST_CONTROLLER)
+                        .withOmega(ANGLE_ADJUST_CONTROLLER);
+
+        public static final SwerveState XY_ADJUST_ABS = new SwerveState("XY Adjust ABS").withOnStateEnter(() -> {
+                                XY_ADJUST_CONTROLLER.withFieldRelative(true);
+                                XY_ADJUST_CONTROLLER.withXYControllers(ABS_X_PID_CONTROLLER, ABS_Y_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                                XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()), false);
+                                XY_ADJUST_CONTROLLER.withMeasurment(()-> PoseEstimator.getCurrentPose());
+                                XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                        })
+                        .withXY(XY_ADJUST_CONTROLLER)
+                        .withOmega(ANGLE_ADJUST_CONTROLLER);
 
         public static double getAbsAngleToTargetFuter() {
 
