@@ -43,8 +43,8 @@ public class Robot extends DeafultRobot {
     shooterConfig = new TalonFXConfiguration();
     kickerConfig = new TalonFXConfiguration();
 
-    shooterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    kickerConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    shooterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    kickerConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     shooterConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
     kickerConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;

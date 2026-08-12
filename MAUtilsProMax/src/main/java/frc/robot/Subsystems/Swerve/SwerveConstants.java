@@ -78,7 +78,7 @@ public class SwerveConstants {
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
         public static final SwerveState FIELD_CENTRIC_40 = new SwerveState("Field Centric 40 Precent")
-                        .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.3, 0.20))
+                        .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.1, 0.10))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
         public static final SwerveState ABS_CENTERING = new SwerveState("ABS Centering")
