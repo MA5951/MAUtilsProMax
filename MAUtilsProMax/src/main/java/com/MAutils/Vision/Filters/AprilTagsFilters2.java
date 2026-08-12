@@ -65,6 +65,10 @@ public class AprilTagsFilters2 {
 
     }
 
+    public double getLastCaptureTime() {
+        return lastCaptureTime;
+    }
+
     private double currentAcceleration() {
         dt = Timer.getFPGATimestamp() - lastMeasurementTime;
         lastMeasurementTime = Timer.getFPGATimestamp();
