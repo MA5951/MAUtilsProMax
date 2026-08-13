@@ -19,8 +19,8 @@ public class SwerveController extends SwerveSystemController {
     }
 
     public void SetSwerveState() {
-        if (RobotContainer.getDriverController().getL2()) {
-            setState(SwerveConstants.FIELD_CENTRIC_40);
+        // if (RobotContainer.getDriverController().getL2()) {
+        //     setState(SwerveConstants.FIELD_CENTRIC_40);
                 
         // } else if(RobotContainer.getDriverController().getR2()) {
         //     setState(SwerveConstants.ABS_CENTERING);
@@ -30,10 +30,10 @@ public class SwerveController extends SwerveSystemController {
             
         // } else if(RobotContainer.getDriverController().getL1()) {]\[]
         //     setState(SwerveConstants.REL_UNLOCKED);
-        } else {
+        // } else {
             setState(SwerveConstants.FIELD_CENTRIC);
                 
-        } 
+        // } 
     }
 
 }
