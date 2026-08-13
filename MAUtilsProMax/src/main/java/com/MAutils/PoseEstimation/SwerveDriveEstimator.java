@@ -64,22 +64,9 @@ public class SwerveDriveEstimator {
         //     totalDelta = totalDelta.plus(calculateModuleDisplysment(lastPositions[skidDetector.getSecoundLowestIndex()], currentPositions[skidDetector.getSecoundLowestIndex()]));
         //     numOfSkiddingModules = 2;
         // } else {
-            for (int i = 0; i < currentPositions.length; i++) {
-                deltaDistance = currentPositions[i].distanceMeters - lastPositions[i].distanceMeters;
-                prevAngle = lastPositions[i].angle;
-                currAngle = currentPositions[i].angle;
-                deltaTheta = currAngle.minus(prevAngle).getRadians();
-
-                if (Math.abs(deltaTheta) < 1e-5) { //TODO you duplicate code her just call calculateModuleDisplysment()
-                    arcDelta = new Translation2d(deltaDistance, currAngle); 
-                } else {
-                    Translation2d v1 = new Translation2d(deltaDistance / deltaTheta,
-                            prevAngle.minus(Rotation2d.fromRadians(Math.PI / 2)));
-                    Translation2d v2 = v1.rotateBy(Rotation2d.fromRadians(deltaTheta));
-
-                    arcDelta = v2.minus(v1);
-                }
-                totalDelta = totalDelta.plus(arcDelta);
+            for (int i = 0; i < currentPositions.length; i++) {// TODO CHECK IF CURRENT POSITION RETURNS BEFORE KINEMATIX 
+                deltaDistance = currentPositions[i].distanceMeters - lastPositions[i].distanceMeters;//TODO: RETURN X Y (USE TRIGO)
+                totalDelta = totalDelta.plus(deltaDistance); // MOVE TO SWERVE SYSTEM
 
                 // if (!skidDetector.getIsSkidding()[i] && numOfSkiddingModules < 2) { // TODO you dont need to check numOfSkiddingModules < 2 its in the else
                 //     totalDelta = totalDelta.plus(arcDelta);
@@ -94,8 +81,8 @@ public class SwerveDriveEstimator {
         
 
         return new Twist2d(
-                totalDelta.getX() / (4 - numOfSkiddingModules), //TODO change the 4 to currentPositions.length
-                totalDelta.getY() / (4 - numOfSkiddingModules),
+                totalDelta.getX() / (4), //TODO change the 4 to currentPositions.length
+                totalDelta.getY() / (4),
                 0); //TODO why you dont just edite the odometryTwist her
     }
 
@@ -148,7 +135,6 @@ public class SwerveDriveEstimator {
 
             }
 
-            odometrySource.capture();
 
             TelemetryLogger.logSwerve("Odometry Captured");
 
@@ -156,9 +142,11 @@ public class SwerveDriveEstimator {
             loopTwistSum.dx = 0;
             loopTwistSum.dy = 0;
             loopTwistSum.dtheta = 0;
-            odometrySource.capture();
             TelemetryLogger.logSwerve("Ignoring odometry data, collision or tilt detected");
         }
+        
+        odometrySource.capture();
+
     }
 
     private Translation2d calculateModuleDisplysment(SwerveModulePosition lastPosition,

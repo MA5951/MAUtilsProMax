@@ -19,7 +19,6 @@ public class Swerve extends SwerveSystem{
 
     private Swerve() {
         super(SwerveConstants.SWERVE_CONSTANTS);
-
         
     }
 

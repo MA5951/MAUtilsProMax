@@ -3,12 +3,15 @@ package com.MAutils.Vision.Filters;
 
 import java.util.function.Supplier;
 
+import org.dyn4j.geometry.Ellipse;
+
 import com.MAutils.Utils.Circle2d;
 import com.MAutils.Vision.IOs.VisionCameraIO;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Ellipse2d;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -25,7 +28,6 @@ public class AprilTagsFilters2 {
     private PoseEstimate lastEstimate;
     private Translation2d lastPose = new Translation2d();
     private RawFiducial lastTag;
-    private double lastCaptureTime;
     private double lastMeasurementTime;
     private double lastLinearVelocity;
 
@@ -59,15 +61,8 @@ public class AprilTagsFilters2 {
     public void update() {
         this.lastEstimate = visionCameraIO.getPoseEstimate(config.poseEstimateType);
         this.lastTag = visionCameraIO.getTag();
-        if (lastEstimate != null) {
-            this.lastCaptureTime = Timer.getFPGATimestamp() - (lastEstimate.latency / 1000.0);
-        }
-
     }
 
-    public double getLastCaptureTime() {
-        return lastCaptureTime;
-    }
 
     private double currentAcceleration() {
         dt = Timer.getFPGATimestamp() - lastMeasurementTime;
@@ -95,16 +90,17 @@ public class AprilTagsFilters2 {
 
         acceleration = currentAcceleration();
 
-        radius = (lastLinearVelocity * dt) + (0.5 * acceleration * dt * dt) + config.motionMarginMeters;
+        radius = (lastLinearVelocity * dt) + (0.5 * acceleration * dt * dt) + config.motionMarginMeters;//TODO: CHANGE TO 30 CM
 
         
         c = new Circle2d(lastPose, radius);
+        // TODO CHANGE Ellipse2d e = new Ellipse2d(lastPose, radius, radius);
 
         isInside = c.contains(lastEstimate.pose.getTranslation());
 
-        if (isInside) {
-            lastPose = lastEstimate.pose.getTranslation(); 
-        }
+
+        lastPose = lastEstimate.pose.getTranslation(); 
+
         return isInside;
     }
 
@@ -126,20 +122,9 @@ public class AprilTagsFilters2 {
         return lastTag.ambiguity > config.maxAmbiguity;
     }
 
-    public boolean isHardYawDrift() {
-        if (lastEstimate == null) return false;
-        visionYaw = lastEstimate.pose.getRotation().getRadians(); //TODO check if imuYawRadSupplier is in radians or degrees
-        yawDiffDeg = Math.toDegrees(Math.abs(MathUtil.angleModulus(visionYaw - imuYawRadSupplier.get())));
-        return (yawDiffDeg >= config.hardYawGateDeg);
-    }
-
     public boolean hasEnoughTags() {
     if (lastEstimate == null) return false;
-    return !(lastEstimate.tagCount < config.minTagsSeen);
-    }
-
-    public boolean isBasicValid() {
-        return !(lastEstimate == null || lastEstimate.pose == null || lastTag == null);
+        return !(lastEstimate.tagCount < config.minTagsSeen);
     }
 
     public boolean isTagSizeTooSmall() {
@@ -148,11 +133,9 @@ public class AprilTagsFilters2 {
     }
 
     public boolean isValid() {
-        if (!isBasicValid()) return false;
         if (!hasEnoughTags()) return false;
         if (isOutOfField()) return false;
         if (isTagAmbiguousTooBig()) return false;
-        if (isHardYawDrift()) return false;
         if (isLinearVelocityTooHigh() || isAngularVelocityTooHigh()) return false;
         if (isTagSizeTooSmall()) return false;
         if (!isPossiblePose()) return false;
