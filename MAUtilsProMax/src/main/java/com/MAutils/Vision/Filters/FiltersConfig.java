@@ -50,7 +50,7 @@ public class FiltersConfig {
 
     /** Motion-cone model: v*dt + 0.5*aMax*dt^2 + margin (meters). */
     public double aMax = 6.0; // ADDED
-    public double motionMarginMeters = 1.5; // ADDED
+    public double motionMarginMeters = 0.3; // ADDED
     public double idleBubbleMeters = 0.07; // ADDED
 
     /** Minimum trust to consider a measurement useful. */

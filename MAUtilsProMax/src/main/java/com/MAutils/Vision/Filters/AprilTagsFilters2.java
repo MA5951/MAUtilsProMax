@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 
 import org.dyn4j.geometry.Ellipse;
 
-import com.MAutils.Utils.Circle2d;
 import com.MAutils.Vision.IOs.VisionCameraIO;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
@@ -25,22 +24,19 @@ public class AprilTagsFilters2 {
     private final Supplier<Double> imuYawRadSupplier;
     private final Supplier<Double> imuYawVelocitySupplier;
 
-    private PoseEstimate lastEstimate;
-    private Translation2d lastPose = new Translation2d();
-    private RawFiducial lastTag;
-    private double lastMeasurementTime;
-    private double lastLinearVelocity;
 
-    private double visionYaw = 0;
-    private double yawDiffDeg = 0;
-    private double acceleration = 0;
+    private PoseEstimate currentEstimate;
+    private Translation2d currentPose = new Translation2d();
+    private RawFiducial currentTag;
+    private double currentMeasurementTime;
+
     private double linearVelocity = 0;
     private double dt = 0;
     private double radius = 0 ;
 
     private  boolean isInside = false;
 
-    private Circle2d c;
+    private Ellipse2d c;
 
     public AprilTagsFilters2(FiltersConfig config, 
                            VisionCameraIO visionCameraIO, 
@@ -53,53 +49,35 @@ public class AprilTagsFilters2 {
         this.chassisSpeeds = chassisSpeedsSupplier;
         this.imuYawRadSupplier = imuYawRadSupplier;
         this.imuYawVelocitySupplier = imuYawVelocitySupplier;
-        lastMeasurementTime = Timer.getFPGATimestamp();
-        lastLinearVelocity = 0.0;
-        lastPose = null;
+        currentMeasurementTime = Timer.getFPGATimestamp();
+        currentPose = null;
     }
 
     public void update() {
-        this.lastEstimate = visionCameraIO.getPoseEstimate(config.poseEstimateType);
-        this.lastTag = visionCameraIO.getTag();
-    }
-
-
-    private double currentAcceleration() {
-        dt = Timer.getFPGATimestamp() - lastMeasurementTime;
-        lastMeasurementTime = Timer.getFPGATimestamp();
-
-        if (dt <= 0) {
-            return 0.0;
-        }
-
-        linearVelocity = Math.hypot(chassisSpeeds.get().vxMetersPerSecond, chassisSpeeds.get().vyMetersPerSecond);
-
-        acceleration = (linearVelocity - lastLinearVelocity) / dt;
-        lastLinearVelocity = linearVelocity;
-
-        return acceleration;
+        this.currentEstimate = visionCameraIO.getPoseEstimate(config.poseEstimateType);
+        this.currentTag = visionCameraIO.getTag();
     }
 
     public boolean isPossiblePose() {
-        if (lastEstimate == null || lastEstimate.pose == null) return false;
+        if (currentEstimate == null || currentEstimate.pose == null) return false;
 
-        if (lastPose == null) {
-            lastPose = lastEstimate.pose.getTranslation();
+        if (currentPose == null) {
+            currentPose = currentEstimate.pose.getTranslation();
             return true; 
         }
 
-        acceleration = currentAcceleration();
+        linearVelocity = Math.hypot(chassisSpeeds.get().vxMetersPerSecond, chassisSpeeds.get().vyMetersPerSecond);
+        dt = Timer.getFPGATimestamp() - currentMeasurementTime;
 
-        radius = (lastLinearVelocity * dt) + (0.5 * acceleration * dt * dt) + config.motionMarginMeters;//TODO: CHANGE TO 30 CM
+        radius = (linearVelocity * dt) + config.motionMarginMeters;//TODO: CHANGE TO 30 CM
 
         
-        c = new Circle2d(lastPose, radius);
-        // TODO CHANGE Ellipse2d e = new Ellipse2d(lastPose, radius, radius);
+        c = new Ellipse2d(currentPose, radius);
 
-        isInside = c.contains(lastEstimate.pose.getTranslation());
+        isInside = c.contains(currentEstimate.pose.getTranslation());
 
 
-        lastPose = lastEstimate.pose.getTranslation(); 
+        currentPose = currentEstimate.pose.getTranslation(); 
 
         return isInside;
     }
@@ -113,23 +91,23 @@ public class AprilTagsFilters2 {
     }
 
     public boolean isOutOfField() {
-        if (lastEstimate == null)  return true;
-        return !FiltersConfig.fieldRactangle.contains(lastEstimate.pose.getTranslation());
+        if (currentEstimate == null)  return true;
+        return !FiltersConfig.fieldRactangle.contains(currentEstimate.pose.getTranslation());
     }
 
     public boolean isTagAmbiguousTooBig() {
-        if (lastTag == null) return true;
-        return lastTag.ambiguity > config.maxAmbiguity;
+        if (currentTag == null) return true;
+        return currentTag.ambiguity > config.maxAmbiguity;
     }
 
     public boolean hasEnoughTags() {
-    if (lastEstimate == null) return false;
-        return !(lastEstimate.tagCount < config.minTagsSeen);
+    if (currentEstimate == null) return false;
+        return !(currentEstimate.tagCount < config.minTagsSeen);
     }
 
     public boolean isTagSizeTooSmall() {
-        if (lastTag == null) return true;
-        return lastTag.ta < config.smallestTagSize;
+        if (currentTag == null) return true;
+        return currentTag.ta < config.smallestTagSize;
     }
 
     public boolean isValid() {
@@ -140,8 +118,8 @@ public class AprilTagsFilters2 {
         if (isTagSizeTooSmall()) return false;
         if (!isPossiblePose()) return false;
 
-        if (Math.abs(lastEstimate.pose.getX()) < 1e-3) return false;
-        if (Math.abs(lastEstimate.pose.getY()) < 1e-3) return false;
+        if (Math.abs(currentEstimate.pose.getX()) < 1e-3) return false;
+        if (Math.abs(currentEstimate.pose.getY()) < 1e-3) return false;
 
         return true;
     }
