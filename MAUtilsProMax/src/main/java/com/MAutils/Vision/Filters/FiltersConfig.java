@@ -27,16 +27,6 @@ public class FiltersConfig {
     public static final Translation2d FieldMiddlePoint = new Translation2d(17.548 / 2, 8.052 / 2);
     public static final Rectangle2d fieldRactangle = new Rectangle2d(FieldZeroCorner, FieldFarCorner);
 
-
-    // TODO need to add hear a obstical list that the filter will go over it, you
-    // can jump into a abostical + move to constants the sizees
-
-    public static PoseEstimateType poseEstimateType = PoseEstimateType.MT2; // Use MegaTag2 for pose estimates
-
-    public FiltersConfig() {
-    }
-
-    // ===== ADDED: Simple trust scorer tuning =====
     /**
      * Degrees: >= hardYawGateDeg → reject yaw trust (and typically the whole
      * frame).
@@ -60,6 +50,15 @@ public class FiltersConfig {
     public double maxAngularVelocityRS = 150; // if robot Angular velocity > this => rejects Radians per second
 
     public double smallestTagSize = 0.15; // if the tag size is smaller than this => rejects (TA)
+
+
+
+    public static PoseEstimateType poseEstimateType = PoseEstimateType.MT2; // Use MegaTag2 for pose estimates
+
+    public FiltersConfig() {
+    }
+
+    
 
 
 }

@@ -3,15 +3,12 @@ package com.MAutils.Vision.Filters;
 
 import java.util.function.Supplier;
 
-import org.dyn4j.geometry.Ellipse;
-
+import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Vision.IOs.VisionCameraIO;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Ellipse2d;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
@@ -21,11 +18,10 @@ public class AprilTagsFilters2 {
     private FiltersConfig config;
     private final VisionCameraIO visionCameraIO;
     private final Supplier<ChassisSpeeds> chassisSpeeds;
-    private final Supplier<Double> imuYawRadSupplier;
-    private final Supplier<Double> imuYawVelocitySupplier;
+    private final Supplier<Double> imuYawVelocitySupplier; 
 
 
-    private PoseEstimate currentEstimate;
+    private PoseEstimate currentEstimate = new PoseEstimate();
     private Translation2d currentPose = new Translation2d();
     private RawFiducial currentTag;
     private double currentMeasurementTime;
@@ -41,13 +37,11 @@ public class AprilTagsFilters2 {
     public AprilTagsFilters2(FiltersConfig config, 
                            VisionCameraIO visionCameraIO, 
                            Supplier<ChassisSpeeds> chassisSpeedsSupplier, 
-                           Supplier<Double> imuYawRadSupplier,
                            Supplier<Double> imuYawVelocitySupplier) {
 
         this.config = config;
         this.visionCameraIO = visionCameraIO;
         this.chassisSpeeds = chassisSpeedsSupplier;
-        this.imuYawRadSupplier = imuYawRadSupplier;
         this.imuYawVelocitySupplier = imuYawVelocitySupplier;
         currentMeasurementTime = Timer.getFPGATimestamp();
         currentPose = null;
@@ -58,7 +52,7 @@ public class AprilTagsFilters2 {
         this.currentTag = visionCameraIO.getTag();
     }
 
-    public boolean isPossiblePose() {
+    public boolean isImpossiblePose() {
         if (currentEstimate == null || currentEstimate.pose == null) return false;
 
         if (currentPose == null) {
@@ -69,17 +63,18 @@ public class AprilTagsFilters2 {
         linearVelocity = Math.hypot(chassisSpeeds.get().vxMetersPerSecond, chassisSpeeds.get().vyMetersPerSecond);
         dt = Timer.getFPGATimestamp() - currentMeasurementTime;
 
-        radius = (linearVelocity * dt) + config.motionMarginMeters;//TODO: CHANGE TO 30 CM
+        radius = (linearVelocity * dt) + config.motionMarginMeters;
 
         
-        c = new Ellipse2d(currentPose, radius);
+        c = new Ellipse2d(PoseEstimator.getCurrentPose().getTranslation(), radius);//cAHNGE CURRENT POSE TO POSE ESTIMATE
 
         isInside = c.contains(currentEstimate.pose.getTranslation());
 
 
         currentPose = currentEstimate.pose.getTranslation(); 
+        currentMeasurementTime = Timer.getFPGATimestamp();
 
-        return isInside;
+        return !isInside;
     }
 
     public boolean isLinearVelocityTooHigh() {
@@ -100,10 +95,6 @@ public class AprilTagsFilters2 {
         return currentTag.ambiguity > config.maxAmbiguity;
     }
 
-    public boolean hasEnoughTags() {
-    if (currentEstimate == null) return false;
-        return !(currentEstimate.tagCount < config.minTagsSeen);
-    }
 
     public boolean isTagSizeTooSmall() {
         if (currentTag == null) return true;
@@ -111,12 +102,13 @@ public class AprilTagsFilters2 {
     }
 
     public boolean isValid() {
-        if (!hasEnoughTags()) return false;
+        if (currentEstimate == null || currentEstimate.pose == null || currentTag == null || currentEstimate.tagCount < config.minTagsSeen) return false;   
+
         if (isOutOfField()) return false;
         if (isTagAmbiguousTooBig()) return false;
         if (isLinearVelocityTooHigh() || isAngularVelocityTooHigh()) return false;
         if (isTagSizeTooSmall()) return false;
-        if (!isPossiblePose()) return false;
+        if (isImpossiblePose()) return false;
 
         if (Math.abs(currentEstimate.pose.getX()) < 1e-3) return false;
         if (Math.abs(currentEstimate.pose.getY()) < 1e-3) return false;
