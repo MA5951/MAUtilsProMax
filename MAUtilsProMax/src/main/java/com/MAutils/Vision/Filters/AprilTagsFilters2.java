@@ -107,7 +107,7 @@ public class AprilTagsFilters2 {
         if (isOutOfField()) return false;
         if (isTagAmbiguousTooBig()) return false;
         if (isLinearVelocityTooHigh() || isAngularVelocityTooHigh()) return false;
-        if (isTagSizeTooSmall()) return false;
+        if (isTagSizeTooSmall()) return false; 
         if (isImpossiblePose()) return false;
 
         if (Math.abs(currentEstimate.pose.getX()) < 1e-3) return false;

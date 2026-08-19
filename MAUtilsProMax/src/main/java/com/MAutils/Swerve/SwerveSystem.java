@@ -290,10 +290,10 @@ public class SwerveSystem extends SubsystemBase {
     }
 
     public Twist2d getTranslationDelta(SwerveModulePosition[] currentPositions) {
-        totalDelta = new Translation2d(); //TODO is better to 0 the values then creat a new one totalDelta = vector zero;
+        totalDelta = Translation2d.kZero; 
 
         for (int i = 0; i < currentPositions.length; i++) {// TODO CHECK IF CURRENT POSITION RETURNS BEFORE KINEMATIX 
-            deltaDistance = new Translation2d((currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.cos(lastPositions[i].angle.getRadians()), (currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.sin(lastPositions[i].angle.getRadians()));
+            deltaDistance = new Translation2d((currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.cos(lastPositions[i].angle.getRadians()), (currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.sin(lastPositions[i].angle.getRadians()));//TODO: GO OVER TRIG
             totalDelta = totalDelta.plus(deltaDistance); 
         }
     
