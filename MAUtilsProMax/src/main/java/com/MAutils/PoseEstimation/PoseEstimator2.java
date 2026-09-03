@@ -156,7 +156,6 @@ public class PoseEstimator2 {
         final boolean hasXY = sumFomXY > Constants.MIN_FOM_VALUE;
         final boolean hasTh = sumFomTheta > Constants.MIN_FOM_VALUE;
 
-
         MALog.log("Pose Estimator/sumofFOM/XY", sumFomXY);
         MALog.log("Pose Estimator/sumofFOM/Theta", sumFomTheta);
 
@@ -164,9 +163,9 @@ public class PoseEstimator2 {
             return new Twist2d();
         }
 
-        double outDx =  (dx / sumFomXY);
-        double outDy = (dy / sumFomXY);
-        double outDTh = (dTheta / sumFomTheta);
+        double outDx = dx / sumFomXY;
+        double outDy = dy / sumFomXY;
+        double outDTh =dTheta / sumFomTheta;
 
         MALog.log("Pose Estimator/Total Twist/X", outDx);
         MALog.log("Pose Estimator/Total Twist/Y", outDy);
