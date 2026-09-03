@@ -25,10 +25,10 @@ public class Robot extends DeafultRobot {
   private final RobotContainer m_robotContainer;
   // private final TalonFX motor;
 
-  private final TalonFX shooterMotor;
-  private final TalonFX kickerMotor;
-  private final TalonFXConfiguration shooterConfig;
-  private final TalonFXConfiguration kickerConfig;
+  // private final TalonFX shooterMotor;
+  // private final TalonFX kickerMotor;
+  // private final TalonFXConfiguration shooterConfig;
+  // private final TalonFXConfiguration kickerConfig;
 
 
   public Robot() {
@@ -37,23 +37,23 @@ public class Robot extends DeafultRobot {
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586, 3.596, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
    
-    shooterMotor = new TalonFX(30);
-    kickerMotor = new TalonFX(31);
+    // shooterMotor = new TalonFX(30);
+    // kickerMotor = new TalonFX(31);
 
-    shooterConfig = new TalonFXConfiguration();
-    kickerConfig = new TalonFXConfiguration();
+    // shooterConfig = new TalonFXConfiguration();
+    // kickerConfig = new TalonFXConfiguration();
 
-    shooterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    kickerConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    // shooterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    // kickerConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-    shooterConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
-    kickerConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
+    // shooterConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
+    // kickerConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.2;
 
-    shooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    kickerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;    
+    // shooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    // kickerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;    
 
-    kickerMotor.getConfigurator().apply(kickerConfig);
-    shooterMotor.getConfigurator().apply(shooterConfig);
+    // kickerMotor.getConfigurator().apply(kickerConfig);
+    // shooterMotor.getConfigurator().apply(shooterConfig);
     
   }
 
@@ -83,13 +83,13 @@ public class Robot extends DeafultRobot {
 
   @Override
   public void teleopPeriodic() {
-    if (RobotContainer.getDriverController().getR1()) {
-      shooterMotor.setVoltage(8);
-      kickerMotor.setVoltage(8);
-    } else {
-      shooterMotor.setVoltage(0);
-      kickerMotor.setVoltage(0);
-    }
+    // if (RobotContainer.getDriverController().getR1()) {
+    //   shooterMotor.setVoltage(8);
+    //   kickerMotor.setVoltage(8);
+    // } else {
+    //   shooterMotor.setVoltage(0);
+    //   kickerMotor.setVoltage(0);
+    // }
   }
 
   @Override
