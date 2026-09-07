@@ -25,7 +25,7 @@ public class PoseEstimatorSource {
     }
  //TODO it will be better to limit the num of varubal in the array list and not save all of them
  // also then you wont need to creat a new Measurement every time
-    private final List<Measurement> buffer = new ArrayList<>();
+    private final List<Measurement> buffer = new ArrayList<>();// TODO FIND A BETTER OBJECT TIMEINTERPOLATORTABLEBUFFER
 
     // --- Suppliers ---
     private final Supplier<Twist2d> twistSupplier;
