@@ -27,62 +27,66 @@ public class PoseEstimatorSource2 {
             timestamp = ts;
         }
 
-        public Measurement interpolate(Measurement endValue, double t) {
-            double interpolatedDx = MathUtil.interpolate(this.twist.dx, endValue.twist.dx, t);
-            double interpolatedDy = MathUtil.interpolate(this.twist.dy, endValue.twist.dy, t);
-            double interpolatedDtheta = MathUtil.interpolate(this.twist.dtheta, endValue.twist.dtheta, t);
-
-            double interpolatedFomXY = MathUtil.interpolate(this.fomXY, endValue.fomXY, t);
-            double interpolatedFomTheta = MathUtil.interpolate(this.fomTheta, endValue.fomTheta, t);
-            double interpolatedTimestamp = MathUtil.interpolate(this.timestamp, endValue.timestamp, t);
-
-            return new Measurement(
-                new Twist2d(interpolatedDx, interpolatedDy, interpolatedDtheta),
-                interpolatedFomXY,
-                interpolatedFomTheta,
-                interpolatedTimestamp
-            );
-        }
     }
 
     private static final double BUFFER_DURATION = 1.5; // seconds
+    private Twist2d interpolatedTwist = new Twist2d();
 
     private final TimeInterpolatableBuffer<Measurement> buffer = 
-            TimeInterpolatableBuffer.createBuffer((start, end, t) -> start.interpolate(end, t), 
-            BUFFER_DURATION);
+    TimeInterpolatableBuffer.createBuffer(
+        (startValue, endValue, t) -> {
+            interpolatedTwist = new Twist2d(
+                MathUtil.interpolate(startValue.twist.dx, endValue.twist.dx, t),
+                MathUtil.interpolate(startValue.twist.dy, endValue.twist.dy, t),
+                MathUtil.interpolate(startValue.twist.dtheta, endValue.twist.dtheta, t)
+            );
 
-             // --- Suppliers ---
-    private final Supplier<Twist2d> twistSupplier;
-    private final Supplier<Double> fomXYSupplier;
-    private final Supplier<Double> fomThetaSupplier;
-    private final Supplier<Double> timestampSupplier;
+            double interpolatedFomXY = MathUtil.interpolate(startValue.fomXY, endValue.fomXY, t);
+            double interpolatedFomTheta = MathUtil.interpolate(startValue.fomTheta, endValue.fomTheta, t);
+            double interpolatedTimestamp = MathUtil.interpolate(startValue.timestamp, endValue.timestamp, t);
+
+            return new Measurement(
+                interpolatedTwist, 
+                interpolatedFomXY, 
+                interpolatedFomTheta, 
+                interpolatedTimestamp
+            );
+        }, 
+        BUFFER_DURATION
+    );
+
+    
+    private final Twist2d twist2d;
+    private final Double fomXY;
+    private final Double fomTheta;
+    private final Double timestamp;
     public final String name;
 
     // Primary ctor: separate XY and theta FOMs + explicit timestamp supplier
-    public PoseEstimatorSource2(String name, Supplier<Twist2d> twistSupplier,
-                               Supplier<Double> fomXYSupplier,
-                               Supplier<Double> fomThetaSupplier,
-                               Supplier<Double> timestampSupplier) {
-        this.twistSupplier = twistSupplier;
-        this.fomXYSupplier = fomXYSupplier;
-        this.fomThetaSupplier = fomThetaSupplier;
-        this.timestampSupplier = timestampSupplier;
+    public PoseEstimatorSource2(String name, Twist2d twist2d,
+                               Double fomXY,
+                               Double fomTheta,
+                               Double timestamp) {
+        this.twist2d = twist2d;
+        this.fomXY = fomXY;
+        this.fomTheta = fomTheta;
+        this.timestamp = timestamp;
         this.name = name;
     }
 
    public final void addMeasurement(Twist2d delta, double fomXY, double fomTheta, double timestamp) {
-        if (fomXY <= 0) fomXY = Constants.MIN_FOM_VALUE;
-        if (fomTheta <= 0) fomTheta = Constants.MIN_FOM_VALUE;
+        if (fomXY <= Constants.MIN_FOM_VALUE) fomXY = Constants.MIN_FOM_VALUE;
+        if (fomTheta <= Constants.MIN_FOM_VALUE) fomTheta = Constants.MIN_FOM_VALUE;
         Measurement p = new Measurement(delta, fomXY, fomTheta, timestamp);
         buffer.addSample(timestamp, p);
     }
 
    public void capture() {
-        if (twistSupplier == null || fomXYSupplier == null || fomThetaSupplier == null) return;
-        Twist2d delta = safeTwist(twistSupplier.get());
-        double fxy = safePos(fomXYSupplier.get());
-        double fth = safePos(fomThetaSupplier.get());
-        double ts  = (timestampSupplier != null) ? timestampSupplier.get() : Timer.getFPGATimestamp();
+        if (twist2d == null || fomXY == null || fomTheta == null) return;
+        Twist2d delta = safeTwist(twist2d);
+        double fxy = safePos(fomXY);
+        double fth = safePos(fomTheta);
+        double ts  = (timestamp != null) ? timestamp : Timer.getFPGATimestamp();
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/X", delta.dx);
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Y", delta.dy);
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Theta", delta.dtheta);
