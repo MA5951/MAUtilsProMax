@@ -12,7 +12,7 @@ public class Vision {
     private Vision() {
         VisionSystem.getInstance().setCameras(VisionConstants.LL);
 
-        VisionConstants.LL.getCameraIO().allowTags(tag);
+        VisionConstants.LL.getCameraIO().allowTags(new int[]{26});
     }
 
     public int getTagID() {

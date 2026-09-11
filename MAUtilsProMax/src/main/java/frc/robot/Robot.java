@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.RobotControl.DeafultRobot;
 import com.ctre.phoenix6.hardware.TalonFX;

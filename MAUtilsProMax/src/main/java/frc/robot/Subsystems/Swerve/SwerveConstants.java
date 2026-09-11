@@ -13,6 +13,7 @@ import com.MAutils.Swerve.Utils.SwerveController;
 import com.MAutils.Swerve.Utils.SwerveState;
 import com.MAutils.Utils.GainConfig;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
+import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.RobotCentric;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.GeometryUtil;
 
@@ -55,7 +56,7 @@ public class SwerveConstants {
 
         public static final PIDController REL_PID_CONTROLLER = new PIDController(0.065, 0, 0)
                         .withContinuesInput(-180, 180)
-                        .withTolerance(2);
+                        .withTolerance(0.5);
 
         public static final PIDController ABS_MOTION_PID_CONTROLLER = new PIDController(0.03, 0, 0)
                         .withContinuesInput(-180, 180)
@@ -98,10 +99,11 @@ public class SwerveConstants {
         public static final SwerveState ABS_CENTERING = new SwerveState("ABS Centering")
                         .withOnStateEnter(() -> {
                                 ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(20);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(clossest90());
                                 ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
 
                         }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
+
 
         public static final SwerveState REL_CENTRING = new SwerveState("REL Centring")
                         .withOnStateEnter(() -> {
@@ -181,6 +183,14 @@ public class SwerveConstants {
                         Translation2d offsetRobot) {
                 return robotPoseField.getTranslation()
                                 .plus(offsetRobot.rotateBy(robotPoseField.getRotation()));
+        }
+
+
+        public static double clossest90() {
+                int index = (int)((Swerve.getInstance().getAbsYawSupplier().get()%360)/90);
+                double angle = index * 90 + 90*(Math.signum((Swerve.getInstance().getAbsYawSupplier().get())));
+                if (Math.abs(angle - Swerve.getInstance().getAbsYawSupplier().get())< 10) return Swerve.getInstance().getAbsYawSupplier().get()+90 ;
+                return angle;
         }
 
 }
