@@ -17,6 +17,7 @@ import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.RobotCentric;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.GeometryUtil;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,6 +35,8 @@ public class SwerveConstants {
 
         public static final GainConfig driveGainConfig = new GainConfig().withKV(0.7).withKS(0.27).withKP(1);
         public static final GainConfig turnGainConfig = new GainConfig().withKP(55).withKS(0.3);
+
+        public static double setPoint;
 
         // Swerve System Constants
         public static final SwerveSystemConstants SWERVE_CONSTANTS = new SwerveSystemConstants()
@@ -99,7 +102,7 @@ public class SwerveConstants {
         public static final SwerveState ABS_CENTERING = new SwerveState("ABS Centering")
                         .withOnStateEnter(() -> {
                                 ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(clossest90());
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getNext90());
                                 ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
 
                         }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
@@ -186,11 +189,15 @@ public class SwerveConstants {
         }
 
 
-        public static double clossest90() {
-                int index = (int)((Swerve.getInstance().getAbsYawSupplier().get()%360)/90);
-                double angle = index * 90 + 90*(Math.signum((Swerve.getInstance().getAbsYawSupplier().get())));
-                if (Math.abs(angle - Swerve.getInstance().getAbsYawSupplier().get())< 10) return Swerve.getInstance().getAbsYawSupplier().get()+90 ;
-                return angle;
+       public static double getNext90() {
+                double currentYaw = MathUtil.inputModulus(Swerve.getInstance().getAbsYawSupplier().get(), 0.0, 360.0);
+    
+                // 2. חישוב האינדקס הבא (תוספת 1 כדי להתקדם ל-90 הבא בשרשרת)
+                int nextIndex = (int) (currentYaw / 90.0) + 1;
+    
+                // 3. תרגום הזווית בחזרה לטווח העבודה של ה-PID [-180, 180]
+                double targetAngle = nextIndex * 90.0;
+                return MathUtil.inputModulus(targetAngle, -180.0, 180.0);
         }
 
 }

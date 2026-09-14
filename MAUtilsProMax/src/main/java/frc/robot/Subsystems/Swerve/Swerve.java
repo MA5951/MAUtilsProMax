@@ -32,7 +32,7 @@ public class Swerve extends SwerveSystem{
     @Override
     public void periodic() {
         super.periodic();
-        MALog.log("Swerve/closest 90", SwerveConstants.clossest90());
+        MALog.log("Swerve/closest 90", SwerveConstants.getNext90());
     }
 
 
