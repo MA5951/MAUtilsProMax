@@ -197,7 +197,7 @@ public class SwerveConstants {
     
                 // 3. תרגום הזווית בחזרה לטווח העבודה של ה-PID [-180, 180]
                 double targetAngle = nextIndex * 90.0;
-                return MathUtil.inputModulus(targetAngle, -180.0, 180.0);
+                return MathUtil.inputModulus(targetAngle+2, -180.0, 180.0);
         }
 
 }
