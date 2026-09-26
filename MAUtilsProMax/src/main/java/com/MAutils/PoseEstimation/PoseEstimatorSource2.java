@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.function.Supplier;
 
 import com.MAutils.Logger.MALog;
+import com.MAutils.PoseEstimation.Helpers.Measurement;
 import com.MAutils.Utils.Constants;
 
 import edu.wpi.first.math.MathUtil;
@@ -16,20 +17,7 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class PoseEstimatorSource2 {
 
-    public static class Measurement {
-        final Twist2d twist;
-        final double fomXY, fomTheta, timestamp;
-
-        Measurement(Twist2d t, double fXY, double fTh, double ts) {
-            twist = t; 
-            fomXY = fXY; 
-            fomTheta = fTh; 
-            timestamp = ts;
-        }
-
-    }
-
-    private static final double BUFFER_DURATION = 1.5; // seconds
+    public static final double BUFFER_DURATION = 1.5; // seconds
     private Twist2d interpolatedTwist = new Twist2d();
 
     private final TimeInterpolatableBuffer<Measurement> buffer = 
@@ -45,12 +33,10 @@ public class PoseEstimatorSource2 {
             double interpolatedFomTheta = MathUtil.interpolate(startValue.fomTheta, endValue.fomTheta, t);
             double interpolatedTimestamp = MathUtil.interpolate(startValue.timestamp, endValue.timestamp, t);
 
-            return new Measurement(
-                interpolatedTwist, 
+            return new Measurement(interpolatedTwist, 
                 interpolatedFomXY, 
                 interpolatedFomTheta, 
-                interpolatedTimestamp
-            );
+                interpolatedTimestamp);
         }, 
         BUFFER_DURATION
     );

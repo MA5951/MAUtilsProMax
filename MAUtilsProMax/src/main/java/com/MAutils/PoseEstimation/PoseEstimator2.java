@@ -1,14 +1,18 @@
 package com.MAutils.PoseEstimation;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.Map;
+
 
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 
 import com.MAutils.Logger.MALog;
 import com.MAutils.Logger.TelemetryLogger;
+import com.MAutils.PoseEstimation.Helpers.HistoryEntry;
+import com.MAutils.PoseEstimation.Helpers.Measurement;
 import com.MAutils.Utils.Constants;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,7 +24,6 @@ import frc.robot.Robot;
 import frc.robot.Util.Field;
 
 public class PoseEstimator2 {
-    private static final double HISTORY_WINDOW_SEC = 1.5; 
 
     private static final double MAX_TRANSLATION_VEL_MPS = 8.0; 
     private static final double MAX_ANGULAR_VEL_RADPS = 14.0; 
@@ -31,9 +34,10 @@ public class PoseEstimator2 {
     private static boolean outOfFieldBool = false;
 
     private static Pose2d poseBeforeHistory = new Pose2d();
-    private static double historyStartTime;
 
-    private static final Deque<HistoryEntry> history = new ArrayDeque<>();
+    private static final NavigableMap<Double, HistoryEntry> history = new TreeMap<>();
+
+
     private static Pose2d currentPose = new Pose2d();
     private static double lastUpdateTime;
 
@@ -53,7 +57,6 @@ public class PoseEstimator2 {
         double now = Timer.getFPGATimestamp();
         history.clear();
         poseBeforeHistory = newPose;
-        historyStartTime = now;
         currentPose = newPose;
         lastUpdateTime = now;
 
@@ -74,9 +77,7 @@ public class PoseEstimator2 {
     }
 
     public static void update() {
-        applyAtTime(Timer.getFPGATimestamp(), history);
-
-        trimHistory();
+        applyAtTime(Timer.getFPGATimestamp());
     }
 
     public static Pose2d getCurrentPose() {
@@ -98,14 +99,20 @@ public class PoseEstimator2 {
 
     public static Pose2d getPoseAt(double queryTime) {
         Pose2d pose = poseBeforeHistory;
-        for (HistoryEntry e : history) {
-            if (e.time > queryTime) break;
-            pose = pose.exp(e.twist);
+
+        for (HistoryEntry entry :
+            history.headMap(queryTime, true).values()) {
+
+            pose = pose.exp(entry.twist);
         }
+
         return pose;
     }
 
-    private static void applyAtTime(double timestamp, Deque<HistoryEntry> targetHist) {
+
+
+
+    private static void applyAtTime(double timestamp) {
         final double dt = Math.max(0.0, timestamp - lastUpdateTime);
 
         Twist2d fused = calculateTwist2d(timestamp);
@@ -119,8 +126,11 @@ public class PoseEstimator2 {
             !Field.HUB_RED.contains(candidate.getTranslation())) {
             
             currentPose = candidate;
-            targetHist.addLast(new HistoryEntry(timestamp, fused));
+            history.put(timestamp, new HistoryEntry(timestamp, fused));
+
             lastUpdateTime = timestamp;
+
+            cleanupHistory(timestamp);
             MALog.log("Pose Estimator/Current Pose", currentPose);
 
         } else {
@@ -138,7 +148,7 @@ public class PoseEstimator2 {
         double dTheta = 0.0;
 
         for (PoseEstimatorSource2 src : sources) {
-            PoseEstimatorSource2.Measurement meas = src.getMeasurement(timestamp);
+            Measurement meas = src.getMeasurement(timestamp);
             if (meas != null) {
 
                 double fXY = meas.fomXY;
@@ -188,23 +198,24 @@ public class PoseEstimator2 {
         return new Twist2d(dx, dy, dtheta);
     }
 
-    private static void trimHistory() {
-        double cutoff = lastUpdateTime - HISTORY_WINDOW_SEC;
+    private static void cleanupHistory(double currentTime) {
+        double oldestAllowedTime =
+        currentTime - PoseEstimatorSource2.BUFFER_DURATION;
 
-        while (!history.isEmpty() && history.peekFirst().time < cutoff) {
-            HistoryEntry e = history.removeFirst();
-            poseBeforeHistory = poseBeforeHistory.exp(e.twist);
-            historyStartTime = e.time;
+        if (history.isEmpty()) return;
+
+        Double firstValidTime = history.ceilingKey(oldestAllowedTime);
+
+        if (firstValidTime == null) {
+            return;
         }
-    }
 
-    private static class HistoryEntry {
-        final double time;
-        final Twist2d twist;
+       Map.Entry<Double, HistoryEntry> lastRemoved = history.lowerEntry(firstValidTime);
 
-        HistoryEntry(double t, Twist2d tw) {
-            time = t;
-            twist = tw;
-        }
-    }
+        if (lastRemoved != null) poseBeforeHistory = getPoseAt(lastRemoved.getKey());
+
+
+        history.headMap(firstValidTime, false).clear();
+}
+
 }
