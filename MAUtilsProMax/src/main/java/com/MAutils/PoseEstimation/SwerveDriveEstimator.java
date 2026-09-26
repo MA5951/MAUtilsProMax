@@ -78,8 +78,8 @@ public class SwerveDriveEstimator {
                     wheelPositions[j] = swerveSystem.getSwerveModules()[j].getOdometryPositions()[i];
                 }
 
-                odometryTwist = swerveSystem.getTranslationDelta(wheelPositions);
-                odometryTwist.dtheta = swerveSystem.getGyroDelta( swerveSystem.getGyroData().odometryYawPositions[i]);
+                odometryTwist = swerveSystem.getTranslationAverageDeltas(wheelPositions);
+                odometryTwist.dtheta = swerveSystem.getGyroDelta();
 
                 loopTwistSum.dx += odometryTwist.dx;
                 loopTwistSum.dy += odometryTwist.dy;

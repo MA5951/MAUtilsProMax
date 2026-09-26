@@ -289,29 +289,55 @@ public class SwerveSystem extends SubsystemBase {
         return swerveModules;
     }
 
-    public Twist2d getTranslationDelta(SwerveModulePosition[] currentPositions) {
-        totalDelta = Translation2d.kZero; 
+    public Translation2d[] getTranslationDeltas(SwerveModulePosition[] currentPositions) {
+        Translation2d[] deltas = new Translation2d[currentPositions.length];
 
-        for (int i = 0; i < currentPositions.length; i++) {// TODO CHECK IF CURRENT POSITION RETURNS BEFORE KINEMATIX 
-            deltaDistance = new Translation2d((currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.cos(lastPositions[i].angle.getRadians()), (currentPositions[i].distanceMeters - lastPositions[i].distanceMeters) * Math.sin(lastPositions[i].angle.getRadians()));//TODO: GO OVER TRIG
-            totalDelta = totalDelta.plus(deltaDistance); 
+        for (int i = 0; i < currentPositions.length; i++) {
+
+            double deltaDistance = currentPositions[i].distanceMeters - lastPositions[i].distanceMeters;
+
+            double deltaAngle = currentPositions[i].angle.getRadians() - lastPositions[i].angle.getRadians();
+
+            double dx = deltaDistance * Math.cos(deltaAngle);
+            double dy = deltaDistance * Math.sin(deltaAngle);
+
+            deltas[i] = new Translation2d(dx, dy);
         }
-    
 
         lastPositions = currentPositions;
 
-        
-
-        return new Twist2d(
-                totalDelta.getX() / (currentPositions.length),
-                totalDelta.getY() / (currentPositions.length),
-                0);
+        return deltas;
     }
 
-    public double getGyroDelta(Rotation2d currentGyro) {
-        gyroDelta = currentGyro.minus(lastGyroRotation).getRadians();
-        lastGyroRotation = currentGyro;
-        return gyroDelta;
+    public Twist2d getTranslationAverageDeltas(SwerveModulePosition[] currentPositions) {
+        Translation2d[] deltas = getTranslationDeltas(currentPositions);
+
+        double totalDx = 0;
+        double totalDy = 0;
+
+        for (Translation2d delta : deltas) {
+            totalDx += delta.getX();
+            totalDy += delta.getY();
+        }
+
+        totalDelta = new Translation2d(totalDx / deltas.length, totalDy / deltas.length);
+
+        return new Twist2d(totalDelta.getX(), totalDelta.getY(), 0);
+    }
+
+    public double getGyroDelta() {
+        Rotation2d currentRotation = getRobotRotation2d();
+
+        if (lastGyroRotation == null) {
+            lastGyroRotation = currentRotation;
+            return 0.0;
+        }
+
+        double delta = currentRotation.minus(lastGyroRotation).getDegrees();
+
+        lastGyroRotation = currentRotation;
+
+        return delta;
     }
 
     private void logSwerve() {
