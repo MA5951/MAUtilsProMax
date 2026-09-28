@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import frc.robot.Subsystems.MAcam.MAcam;
 import frc.robot.Subsystems.Swerve.SwerveConstants;
 import frc.robot.Util.Field;
 
@@ -23,6 +24,8 @@ public class Robot extends DeafultRobot {
   private final RobotContainer m_robotContainer;
   //private final TalonFX motor;
 
+  private MAcam macam;
+
 
 
   public Robot() {
@@ -30,6 +33,7 @@ public class Robot extends DeafultRobot {
     m_robotContainer = new RobotContainer();
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
+    macam = new MAcam(8);
     
   }
 
@@ -37,6 +41,7 @@ public class Robot extends DeafultRobot {
   public void robotPeriodic() {
     super.robotPeriodic();
     CommandScheduler.getInstance().run();
+    MALog.log("Subsystems/MAcam/MAcam distance", macam.getDistanceMM());
   }
 
   @Override
