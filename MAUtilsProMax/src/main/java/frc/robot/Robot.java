@@ -30,7 +30,7 @@ public class Robot extends DeafultRobot {
   private Command m_autonomousCommand;
   private final RobotContainer m_robotContainer;
   private final TalonFX master, slave;
-  private TalonFXConfiguration config = new TalonFXConfiguration();
+  private TalonFXConfiguration configM, configS;
 
   private StrictFollower control;
 
@@ -46,14 +46,24 @@ public class Robot extends DeafultRobot {
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
 
+    configM = new TalonFXConfiguration();
+    configS = new TalonFXConfiguration();
+
+    control = new StrictFollower(masterID);
+
     master = new TalonFX(masterID);
     slave = new TalonFX(21);
 
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    config.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
-    master.getConfigurator().apply(config);
-    slave.getConfigurator().apply(config);
+    configM.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    configM.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    configM.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
+
+    configS.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    configS.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    configS.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
+
+    master.getConfigurator().apply(configM);
+    slave.getConfigurator().apply(configS);
 
     masterCurrentSignal =master.getStatorCurrent();
     slaveCurrentSignal =slave.getStatorCurrent();
@@ -95,11 +105,12 @@ public class Robot extends DeafultRobot {
     }
 
 
-    MALog.log("Subsystems/Motor1/current", masterCurrentSignal.getValueAsDouble());
-    MALog.log("Subsystems/Motor2/current", slaveCurrentSignal.getValueAsDouble());
-
     masterCurrentSignal.refresh();
     slaveCurrentSignal.refresh();
+
+
+    MALog.log("Subsystems/Motor1/current", masterCurrentSignal.getValueAsDouble());
+    MALog.log("Subsystems/Motor2/current", slaveCurrentSignal.getValueAsDouble());
   }
 
   
