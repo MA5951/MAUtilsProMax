@@ -11,6 +11,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -28,11 +29,15 @@ import frc.robot.Util.Field;
 public class Robot extends DeafultRobot {
   private Command m_autonomousCommand;
   private final RobotContainer m_robotContainer;
-  private final TalonFX motor1, motor2;
+  private final TalonFX master, slave;
   private TalonFXConfiguration config = new TalonFXConfiguration();
 
-  private StatusSignal<Current> motor1CurrentSignal;
-  private StatusSignal<Current> motor2CurrentSignal;
+  private StrictFollower control;
+
+  private int masterID = 20;
+
+  private StatusSignal<Current> masterCurrentSignal;
+  private StatusSignal<Current> slaveCurrentSignal;
 
 
   public Robot() {
@@ -41,17 +46,17 @@ public class Robot extends DeafultRobot {
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
 
-    motor1 = new TalonFX(20);
-    motor2 = new TalonFX(20);
+    master = new TalonFX(masterID);
+    slave = new TalonFX(21);
 
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     config.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
-    motor1.getConfigurator().apply(config);
-    motor2.getConfigurator().apply(config);
+    master.getConfigurator().apply(config);
+    slave.getConfigurator().apply(config);
 
-    motor1CurrentSignal =motor1.getStatorCurrent();
-    motor2CurrentSignal =motor2.getStatorCurrent();
+    masterCurrentSignal =master.getStatorCurrent();
+    slaveCurrentSignal =slave.getStatorCurrent();
     
   }
 
@@ -82,19 +87,19 @@ public class Robot extends DeafultRobot {
   @Override
   public void teleopPeriodic() {
     if(RobotContainer.getDriverController().getL1()) {
-      motor1.setVoltage(7);
-      motor2.setVoltage(7);
+      master.setVoltage(7);
+      slave.setControl(control);
     } else {
-      motor1.setVoltage(0);
-      motor2.setVoltage(0);
+      master.setVoltage(0);
+      slave.setControl(control);
     }
 
 
-    MALog.log("Subsystems/Motor1/current", motor1CurrentSignal.getValueAsDouble());
-    MALog.log("Subsystems/Motor2/current", motor2CurrentSignal.getValueAsDouble());
+    MALog.log("Subsystems/Motor1/current", masterCurrentSignal.getValueAsDouble());
+    MALog.log("Subsystems/Motor2/current", slaveCurrentSignal.getValueAsDouble());
 
-    motor1CurrentSignal.refresh();
-    motor2CurrentSignal.refresh();
+    masterCurrentSignal.refresh();
+    slaveCurrentSignal.refresh();
   }
 
   
