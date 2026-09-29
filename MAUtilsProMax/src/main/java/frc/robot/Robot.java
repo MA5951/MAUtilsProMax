@@ -34,7 +34,7 @@ public class Robot extends DeafultRobot {
 
   private StrictFollower control;
 
-  private int masterID = 20;
+  private int masterID = 31;
 
   private StatusSignal<Current> masterCurrentSignal;
   private StatusSignal<Current> slaveCurrentSignal;
@@ -52,7 +52,7 @@ public class Robot extends DeafultRobot {
     control = new StrictFollower(masterID);
 
     master = new TalonFX(masterID);
-    slave = new TalonFX(21);
+    slave = new TalonFX(35);
 
     // 1/2
 
@@ -61,7 +61,7 @@ public class Robot extends DeafultRobot {
     configM.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
     configM.Feedback.SensorToMechanismRatio = 1/2;
 
-    configS.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    configS.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     configS.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     configS.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
     configS.Feedback.SensorToMechanismRatio = 1/2;
