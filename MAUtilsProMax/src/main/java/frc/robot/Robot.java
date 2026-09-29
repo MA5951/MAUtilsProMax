@@ -54,13 +54,18 @@ public class Robot extends DeafultRobot {
     master = new TalonFX(masterID);
     slave = new TalonFX(21);
 
+    // 1/2
+
     configM.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     configM.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     configM.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
+    configM.Feedback.SensorToMechanismRatio = 1/2;
 
     configS.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     configS.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     configS.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.1;
+    configS.Feedback.SensorToMechanismRatio = 1/2;
+
 
     master.getConfigurator().apply(configM);
     slave.getConfigurator().apply(configS);
