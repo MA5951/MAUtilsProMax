@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.PoseEstimation.PoseEstimatorSource;
-import com.MAutils.Vision.Filters.AprilTagFilters;
+import com.MAutils.Vision.Filters.AprilTagsFilters;
 import com.MAutils.Vision.Filters.FiltersConfig;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
 import com.MAutils.Vision.Util.LimelightHelpers;

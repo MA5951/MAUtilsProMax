@@ -7,7 +7,7 @@ import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimationMA.VisionObservation;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.PoseEstimation.PoseEstimatorSource;
-import com.MAutils.Vision.Filters.AprilTagFilters;
+import com.MAutils.Vision.Filters.AprilTagsFilters;
 import com.MAutils.Vision.Filters.FiltersConfig;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
@@ -29,7 +29,7 @@ public class AprilTagCamera extends Camera {
     public final Supplier<Double> robotAngleVelocitySupplier; // degrees/sec
 
     private FiltersConfig teleopConfig, autoConfig;
-    private AprilTagFilters aprilTagFilters;
+    private AprilTagsFilters aprilTagFilters;
     private Transform2d delta;
     private PoseEstimate poseEstimate;
     private Pose2d visionPose, prior;
@@ -83,17 +83,16 @@ public class AprilTagCamera extends Camera {
                 : () -> new ChassisSpeeds(); // ADDED
 
         // ===== CHANGED: pass IMU yaw (radians) + chassis speeds to filters
-        this.aprilTagFilters = new AprilTagFilters(getFiltersConfig(),
+        this.aprilTagFilters = new AprilTagsFilters(getFiltersConfig(),
                 cameraIO,
                 this.chassisSpeedsSupplier,
-                () -> Math.toRadians(this.robotAngleSupplier.get()),
-                robotAngleVelocitySupplier, fomCOF); // ADDED
+                robotAngleVelocitySupplier); // ADDED
 
         poseEstimatorSource = new PoseEstimatorSource(cameraIO.getName(),
-                () -> getRobotRelaticTwist(poseEstimate, visionTs),
-                () -> xyFom,
-                () -> oFom,
-                () -> visionTs);
+                getRobotRelaticTwist(poseEstimate, visionTs),
+                xyFom,
+                oFom,
+                visionTs);
 
         PoseEstimator.addSource(poseEstimatorSource);
     }
@@ -115,7 +114,7 @@ public class AprilTagCamera extends Camera {
         logIO();
 
         if (updatePoseEstiamte) {
-            xyFom = aprilTagFilters.getXyFOM(); // CHANGED: now computed by yaw/motion gates
+            xyFom = aprilTagFilters.getXYFOM(); // CHANGED: now computed by yaw/motion gates
             oFom = aprilTagFilters.getOFOM(); // CHANGED
 
             MALog.log("Subsystems/Vision/Cameras/" + name + "/XY FOM", xyFom);
@@ -167,6 +166,7 @@ public class AprilTagCamera extends Camera {
     // TODO add get raw pose value,without fom or filters just pose3d
 
     private Twist2d getRobotRelaticTwist(PoseEstimate poseEstimator, double timestemp) {
+        if(poseEstimator == null) return new Twist2d();
         visionPose = poseEstimate.pose;
         prior = PoseEstimator.getPoseAt(timestemp);
         MALog.log("/OdometryDebug/PriorPose", prior);

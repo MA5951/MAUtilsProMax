@@ -34,7 +34,7 @@ public class SwerveDriveEstimator {
         this.collisionDetector = new CollisionDetector(swerveSystem::getGyroData);
 
         this.odometrySource = new PoseEstimatorSource("Swerve Odometry",
-                () -> loopTwistSum, () -> getTranslationFOM(), () -> getRotationFOM(), () -> Timer.getFPGATimestamp());
+                loopTwistSum, getTranslationFOM(), getRotationFOM(), Timer.getFPGATimestamp());
 
         PoseEstimator.addSource(odometrySource);
 

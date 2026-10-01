@@ -14,7 +14,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 
-public class AprilTagsFilters2 {
+public class AprilTagsFilters {
 
     private FiltersConfig config;
     private final VisionCameraIO visionCameraIO;
@@ -36,7 +36,7 @@ public class AprilTagsFilters2 {
 
     private Ellipse2d c;
 
-    public AprilTagsFilters2(FiltersConfig config, 
+    public AprilTagsFilters(FiltersConfig config, 
                            VisionCameraIO visionCameraIO, 
                            Supplier<ChassisSpeeds> chassisSpeedsSupplier, 
                            Supplier<Double> imuYawVelocitySupplier) {
@@ -50,10 +50,10 @@ public class AprilTagsFilters2 {
     }
 
     public void update() {
+        lastPose = currentPose;
         this.currentPose = visionCameraIO.getPoseEstimate(config.poseEstimateType).pose.getTranslation();
         this.currentTag = visionCameraIO.getTag();
         amountOftagsSeen = visionCameraIO.getPoseEstimate(config.poseEstimateType).tagCount;
-        lastPose = currentPose;
     }
 
     public boolean isImpossiblePose() {
@@ -90,7 +90,7 @@ public class AprilTagsFilters2 {
 
     public boolean isOutOfField() {
         if (currentPose == null)  return true;
-        return !FiltersConfig.fieldRactangle.contains(currentPose);
+        return !config.fieldRactangle.contains(currentPose);
     }
 
     public boolean isTagAmbiguousTooBig() {
@@ -102,6 +102,14 @@ public class AprilTagsFilters2 {
     public boolean isTagSizeTooSmall() {
         if (currentTag == null) return true;
         return currentTag.ta < config.smallestTagSize;
+    }
+
+    public double getXYFOM() {
+        return 1;
+    }
+
+    public double getOFOM() {
+        return 1;
     }
 
     public boolean isValid() {
