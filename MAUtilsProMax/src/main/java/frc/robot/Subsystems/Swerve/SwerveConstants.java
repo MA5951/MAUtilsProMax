@@ -92,7 +92,7 @@ public class SwerveConstants {
         public static final SwerveState NONE = new SwerveState("NONE").withXY(0, 0).withOmega(0);
 
         public static final SwerveState FIELD_CENTRIC = new SwerveState("Field Centric")
-                        .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.85, 0.35))
+                        .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.85, 0.8))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
         public static final SwerveState FIELD_CENTRIC_40 = new SwerveState("Field Centric 40 Precent")

@@ -47,7 +47,7 @@ public class FiltersConfig {
     public double minAcceptTrust = 0.05; // ADDED
 
     public double maxLinearVelocityMS = 4; // if robot Linear velocity > this => rejects
-    public double maxAngularVelocityRS = 150; // if robot Angular velocity > this => rejects Radians per second
+    public double maxAngularVelocityRS = 400; // if robot Angular velocity > this => rejects Radians per second
 
     public double smallestTagSize = 0.15; // if the tag size is smaller than this => rejects (TA)
 

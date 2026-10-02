@@ -1,5 +1,6 @@
 package com.MAutils.PoseEstimation;
 
+import com.MAutils.Logger.MALog;
 import com.MAutils.Logger.TelemetryLogger;
 import com.MAutils.Swerve.SwerveSystem;
 import com.MAutils.Swerve.SwerveSystemConstants;
@@ -16,8 +17,6 @@ import edu.wpi.first.wpilibj.Timer;
 public class SwerveDriveEstimator {
     private final double MAX_UPDATE_ANGLE = 5;
     private final double SKIP_ODOMETRY_Gs = 3;
-    private final double MAX_ANGULAR_VELOCITY = 150;
-    private final double MAX_LINEAR_VELOCITY = 3; // Maximum linear velocity in meters per second   
 
 
     private final SwerveSystem swerveSystem;
@@ -33,8 +32,7 @@ public class SwerveDriveEstimator {
 
         this.collisionDetector = new CollisionDetector(swerveSystem::getGyroData);
 
-        this.odometrySource = new PoseEstimatorSource("Swerve Odometry",
-                loopTwistSum, getTranslationFOM(), getRotationFOM(), Timer.getFPGATimestamp());
+        this.odometrySource = new PoseEstimatorSource("Swerve Odometry", getTranslationFOM(), getRotationFOM());
 
         PoseEstimator.addSource(odometrySource);
 
@@ -57,16 +55,12 @@ public class SwerveDriveEstimator {
         return swerveSystem.getTiltAngle() >= MAX_UPDATE_ANGLE;
     }
 
-    private boolean isAngularVelocityTooHigh() {
-        return Math.abs(swerveSystem.getGyroData().yawVelocity) > MAX_ANGULAR_VELOCITY;
-    }
-
-    private boolean isLinearVelocityTooHigh() {
-        return Math.hypot(swerveSystem.getChassisSpeeds().vxMetersPerSecond, swerveSystem.getChassisSpeeds().vyMetersPerSecond) > MAX_LINEAR_VELOCITY;
-    }
-
     public void updateOdometry() {
-        if(!isCollisionDetected() && !isTilted() && !isAngularVelocityTooHigh() && !isLinearVelocityTooHigh()) {
+        MALog.log("PE/ swerve/isCollisionDetected", isCollisionDetected());
+        MALog.log("PE/ swerve/isTilted", isTilted());
+
+
+        if(!isCollisionDetected() ) {
             loopTwistSum.dx = 0;
             loopTwistSum.dy = 0;
             loopTwistSum.dtheta = 0;
@@ -76,14 +70,18 @@ public class SwerveDriveEstimator {
             for (int i = 0; i < sampleTimestamps.length; i++) {
                 for (int j = 0; j < wheelPositions.length; j++) { 
                     wheelPositions[j] = swerveSystem.getSwerveModules()[j].getOdometryPositions()[i];
-                }
+                    MALog.log("PE/MODULE POSE/" + j, wheelPositions[j].angle.getDegrees());
+                }                    
+                    //MALog.log("PE/Swerve/wheelPositions", wheelPositions[j].distanceMeters);
 
-                odometryTwist = swerveSystem.getTranslationAverageDeltas(wheelPositions);
-                odometryTwist.dtheta = swerveSystem.getGyroDelta();
+                    odometryTwist = swerveSystem.getTwist2d(wheelPositions);
 
-                loopTwistSum.dx += odometryTwist.dx;
-                loopTwistSum.dy += odometryTwist.dy;
-                loopTwistSum.dtheta += odometryTwist.dtheta;
+                    loopTwistSum.dx += odometryTwist.dx;
+                    loopTwistSum.dy += odometryTwist.dy;
+
+                    //odometryTwist.dtheta = swerveSystem.getGyroDelta();// TODO CHNAGE TO GYRO HIGH ODOMETRY TRED
+
+                 MALog.log("Pose Estimation/ swerve/small twisted", loopTwistSum.dy);
             }
         } else {
             if(isCollisionDetected()) {
@@ -92,19 +90,18 @@ public class SwerveDriveEstimator {
             if(isTilted()) {
                 TelemetryLogger.logSwerve("Ignoring odometry data, tilt detected");
             }
-            if(isAngularVelocityTooHigh()) {
-                TelemetryLogger.logSwerve("Ignoring odometry data, angular velocity too high");
-            }
-            if(isLinearVelocityTooHigh()) {
-                TelemetryLogger.logSwerve("Ignoring odometry data, linear velocity too high");
-            }
+            
 
             loopTwistSum.dx = 0;
             loopTwistSum.dy = 0;
             loopTwistSum.dtheta = 0;
         }
 
-        odometrySource.capture();
+        odometryTwist.dtheta = swerveSystem.getGyroDelta();
+        loopTwistSum.dtheta = odometryTwist.dtheta;
+
+
+        odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp());
     }
 
 }

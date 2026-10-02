@@ -10,7 +10,6 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimationMA.OdometryObservation;
 import com.MAutils.PoseEstimation.PoseEstimator;
-import com.MAutils.PoseEstimation.PoseEstimatorSource;
 import com.MAutils.PoseEstimation.SwerveDriveEstimator;
 import com.MAutils.Simulation.Simulatables.SwerveSimulation;
 import com.MAutils.Simulation.SimulationManager;
@@ -36,6 +35,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Time;
@@ -71,6 +71,7 @@ public class SwerveSystem extends SubsystemBase {
     private final SwerveSetPointGeneratorMA swerveSetPointGeneratorMA;
     private final SwerveModuleState[] currentStates = new SwerveModuleState[4];
     private final SwerveModulePosition[] currentPositions = new SwerveModulePosition[4];
+
 
     private final SwerveSetpointGenerator swerveSetpointGenerator; // TODO you must clean this code as soon as possibal
     private com.pathplanner.lib.util.swerve.SwerveSetpoint currSetpoint = new com.pathplanner.lib.util.swerve.SwerveSetpoint(
@@ -133,6 +134,7 @@ public class SwerveSystem extends SubsystemBase {
 
         swerveSetPointGeneratorMA = new SwerveSetPointGeneratorMA(swerveConstants.kinematics,
                 swerveConstants.modulesLocationArry);
+
     }
 
    
@@ -289,53 +291,34 @@ public class SwerveSystem extends SubsystemBase {
         return swerveModules;
     }
 
-    public Translation2d[] getTranslationDeltas(SwerveModulePosition[] currentPositions) {
-        Translation2d[] deltas = new Translation2d[currentPositions.length];
+    public Twist2d getTwist2d(SwerveModulePosition[] currentPositions) {
 
-        for (int i = 0; i < currentPositions.length; i++) {
-
-            double deltaDistance = currentPositions[i].distanceMeters - lastPositions[i].distanceMeters;
-
-            double deltaAngle = currentPositions[i].angle.getRadians() - lastPositions[i].angle.getRadians();
-
-            double dx = deltaDistance * Math.cos(deltaAngle);
-            double dy = deltaDistance * Math.sin(deltaAngle);
-
-            deltas[i] = new Translation2d(dx, dy);
-        }
+        Twist2d twist = swerveConstants.kinematics.toTwist2d(lastPositions, currentPositions);
 
         lastPositions = currentPositions;
 
-        return deltas;
+        return twist;
+
     }
 
-    public Twist2d getTranslationAverageDeltas(SwerveModulePosition[] currentPositions) {
-        Translation2d[] deltas = getTranslationDeltas(currentPositions);
-
-        double totalDx = 0;
-        double totalDy = 0;
-
-        for (Translation2d delta : deltas) {
-            totalDx += delta.getX();
-            totalDy += delta.getY();
-        }
-
-        totalDelta = new Translation2d(totalDx / deltas.length, totalDy / deltas.length);
-
-        return new Twist2d(totalDelta.getX(), totalDelta.getY(), 0);
-    }
-
+    
     public double getGyroDelta() {
         Rotation2d currentRotation = getRobotRotation2d();
+        MALog.log("PE/ currentRotation",currentRotation.getDegrees());
+
 
         if (lastGyroRotation == null) {
             lastGyroRotation = currentRotation;
             return 0.0;
         }
+        MALog.log("PE/ lastRotation",lastGyroRotation.getDegrees());
 
-        double delta = currentRotation.minus(lastGyroRotation).getDegrees();
+
+        double delta = currentRotation.getDegrees() - lastGyroRotation.getDegrees();
 
         lastGyroRotation = currentRotation;
+
+        MALog.log("PE/ GYRO DELTA",delta);
 
         return delta;
     }

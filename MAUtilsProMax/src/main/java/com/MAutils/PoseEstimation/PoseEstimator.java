@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Robot;
 import frc.robot.Util.Field;
@@ -78,6 +79,7 @@ public class PoseEstimator {
 
     public static void update() {
         applyAtTime(Timer.getFPGATimestamp());
+        MALog.log("PE/ Pose estimation", Timer.getFPGATimestamp());
     }
 
     public static Pose2d getCurrentPose() {
@@ -113,12 +115,15 @@ public class PoseEstimator {
 
 
     private static void applyAtTime(double timestamp) {
-        final double dt = Math.max(0.0, timestamp - lastUpdateTime);
+        //final double dt = Math.max(0.0, timestamp - lastUpdateTime);
 
-        Twist2d fused = calculateTwist2d(timestamp);
-        fused = clampTwistByDt(fused, dt);
+        //Twist2d fused = calculateTwist2d(timestamp);
+        //fused = clampTwistByDt(fused, dt);
 
-        Pose2d candidate = currentPose.exp(fused);
+        Pose2d candidate = currentPose;
+        Twist2d t = calculateTwist2d(timestamp);
+        t.dtheta = Units.degreesToRadians(t.dtheta);
+        candidate = candidate.exp(t);
         MALog.log("Pose Estimator/Candidate", candidate);
 
         if (Field.ALLOWED_FIELD.contains(candidate.getTranslation()) && 
@@ -126,7 +131,7 @@ public class PoseEstimator {
             !Field.HUB_RED.contains(candidate.getTranslation())) {
             
             currentPose = candidate;
-            history.put(timestamp, new HistoryEntry(timestamp, fused));
+            history.put(timestamp, new HistoryEntry(timestamp, calculateTwist2d(timestamp)));
 
             lastUpdateTime = timestamp;
 
@@ -173,9 +178,9 @@ public class PoseEstimator {
             return new Twist2d();
         }
 
-        double outDx = dx / sumFomXY;
-        double outDy = dy / sumFomXY;
-        double outDTh =dTheta / sumFomTheta;
+        double outDx = (dx / sumFomXY) ;
+        double outDy = (dy / sumFomXY);
+        double outDTh =(dTheta / sumFomTheta);
 
         MALog.log("Pose Estimator/Total Twist/X", outDx);
         MALog.log("Pose Estimator/Total Twist/Y", outDy);

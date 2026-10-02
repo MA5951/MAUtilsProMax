@@ -3,6 +3,7 @@ package com.MAutils.Vision.Filters;
 
 import java.util.function.Supplier;
 
+import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Utils.Constants;
 import com.MAutils.Vision.IOs.VisionCameraIO;
@@ -54,11 +55,22 @@ public class AprilTagsFilters {
         this.currentPose = visionCameraIO.getPoseEstimate(config.poseEstimateType).pose.getTranslation();
         this.currentTag = visionCameraIO.getTag();
         amountOftagsSeen = visionCameraIO.getPoseEstimate(config.poseEstimateType).tagCount;
+
+        MALog.log("PE/ Limelight/isImpossiblePose", isImpossiblePose());
+        MALog.log("PE/ Limelight/isLinearVelocityInTolerance", isLinearVelocityInTolerance());
+        MALog.log("PE/ Limelight/isAngularVelocityInTolerance", isAngularVelocityInTolerance());
+        MALog.log("PE/ Limelight/isOutOfField", isOutOfField());
+        MALog.log("PE/ Limelight/isTagAmbiguousTooBig", isTagAmbiguousTooBig());
+        MALog.log("PE/ Limelight/isTagSizeTooSmall", isTagSizeTooSmall());
+
+        
+        MALog.log("PE/ Limelight/pose",currentPose);
+
     }
 
     public boolean isImpossiblePose() {
 
-        if (currentPose == null) {
+        if (currentPose == null || lastPose == null) {
             return true; 
         }
 

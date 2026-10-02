@@ -42,44 +42,41 @@ public class PoseEstimatorSource {
     );
 
     
-    private final Twist2d twist2d;
     private final Double fomXY;
     private final Double fomTheta;
-    private final Double timestamp;
     public final String name;
 
     // Primary ctor: separate XY and theta FOMs + explicit timestamp supplier
-    public PoseEstimatorSource(String name, Twist2d twist2d,
+    public PoseEstimatorSource(String name,
                                Double fomXY,
-                               Double fomTheta,
-                               Double timestamp) {
-        this.twist2d = twist2d;
+                               Double fomTheta) {
         this.fomXY = fomXY;
         this.fomTheta = fomTheta;
-        this.timestamp = timestamp;
         this.name = name;
     }
 
-   public final void addMeasurement(Twist2d delta, double fomXY, double fomTheta, double timestamp) {
+    private final void addMeasurement(Twist2d delta, double fomXY, double fomTheta, double timestamp) {
         if (fomXY <= Constants.MIN_FOM_VALUE) fomXY = Constants.MIN_FOM_VALUE;
         if (fomTheta <= Constants.MIN_FOM_VALUE) fomTheta = Constants.MIN_FOM_VALUE;
         Measurement p = new Measurement(delta, fomXY, fomTheta, timestamp);
         buffer.addSample(timestamp, p);
     }
 
-   public void capture() {
-        if (twist2d == null || fomXY == null || fomTheta == null) return;
+   public void capture(Twist2d twist2d, double timestamp) {
+        if (twist2d == null || fomXY == null || fomTheta == null) {
+            MALog.log("PE/sorce/"+ name, "null");
+            return;
+        }
         Twist2d delta = safeTwist(twist2d);
         double fxy = safePos(fomXY);
         double fth = safePos(fomTheta);
-        double ts  = (timestamp != null) ? timestamp : Timer.getFPGATimestamp();
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/X", delta.dx);
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Y", delta.dy);
         MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Theta", delta.dtheta);
         MALog.log("Pose Estimator/Sources/"+ name +"/FOM XY", fxy);
         MALog.log("Pose Estimator/Sources/"+ name +"/FOM Theta", fth);
-        MALog.log("Pose Estimator/Sources/"+ name +"/Timestemp", ts);
-        addMeasurement(delta, fxy, fth, ts);
+        MALog.log("Pose Estimator/Sources/"+ name +"/Timestemp", timestamp);
+        addMeasurement(delta, fxy, fth, timestamp);
     }
 
     private Twist2d safeTwist(Twist2d t) { 
