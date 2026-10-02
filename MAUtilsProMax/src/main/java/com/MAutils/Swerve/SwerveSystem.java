@@ -10,6 +10,7 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimationMA.OdometryObservation;
 import com.MAutils.PoseEstimation.PoseEstimator;
+import com.MAutils.PoseEstimation.PoseEstimatorSource;
 import com.MAutils.PoseEstimation.SwerveDriveEstimator;
 import com.MAutils.Simulation.Simulatables.SwerveSimulation;
 import com.MAutils.Simulation.SimulationManager;
@@ -19,7 +20,9 @@ import com.MAutils.Swerve.IOs.PhoenixOdometryThread;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModule;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModuleTalonFX;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModuleIO.SwerveModuleData;
+import com.MAutils.Swerve.Utils.CollisionDetector;
 import com.MAutils.Swerve.Utils.ModuleLimits;
+import com.MAutils.Swerve.Utils.SkidDetector;
 import com.MAutils.Swerve.Utils.SwerveSetPointGeneratorMA;
 import com.MAutils.Swerve.Utils.SwerveSetpoint;
 import com.MAutils.Swerve.Utils.SwerveState;
@@ -30,6 +33,8 @@ import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -63,7 +68,6 @@ public class SwerveSystem extends SubsystemBase {
     private SwerveModuleData[] swerveModuleData = new SwerveModuleData[4];
     private final Gyro gyro;
     private ChassisSpeeds currentSpeeds;
-    private SwerveSetpoint swerveSetpoint;
     private final SwerveSetPointGeneratorMA swerveSetPointGeneratorMA;
     private final SwerveModuleState[] currentStates = new SwerveModuleState[4];
     private final SwerveModulePosition[] currentPositions = new SwerveModulePosition[4];
@@ -77,6 +81,17 @@ public class SwerveSystem extends SubsystemBase {
                     new SwerveModuleState(),
                     new SwerveModuleState()
             }, DriveFeedforwards.zeros(4));
+
+    private SwerveModulePosition[] lastPositions = new SwerveModulePosition[] {
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d())
+    };
+
+    private Rotation2d lastGyroRotation;
+    private double gyroDelta;
+    private Translation2d totalDelta = new Translation2d(),  deltaDistance;
 
     public SwerveSystem(SwerveSystemConstants swerveConstants) {
         super();
@@ -272,6 +287,57 @@ public class SwerveSystem extends SubsystemBase {
 
     public SwerveModule[] getSwerveModules() {
         return swerveModules;
+    }
+
+    public Translation2d[] getTranslationDeltas(SwerveModulePosition[] currentPositions) {
+        Translation2d[] deltas = new Translation2d[currentPositions.length];
+
+        for (int i = 0; i < currentPositions.length; i++) {
+
+            double deltaDistance = currentPositions[i].distanceMeters - lastPositions[i].distanceMeters;
+
+            double deltaAngle = currentPositions[i].angle.getRadians() - lastPositions[i].angle.getRadians();
+
+            double dx = deltaDistance * Math.cos(deltaAngle);
+            double dy = deltaDistance * Math.sin(deltaAngle);
+
+            deltas[i] = new Translation2d(dx, dy);
+        }
+
+        lastPositions = currentPositions;
+
+        return deltas;
+    }
+
+    public Twist2d getTranslationAverageDeltas(SwerveModulePosition[] currentPositions) {
+        Translation2d[] deltas = getTranslationDeltas(currentPositions);
+
+        double totalDx = 0;
+        double totalDy = 0;
+
+        for (Translation2d delta : deltas) {
+            totalDx += delta.getX();
+            totalDy += delta.getY();
+        }
+
+        totalDelta = new Translation2d(totalDx / deltas.length, totalDy / deltas.length);
+
+        return new Twist2d(totalDelta.getX(), totalDelta.getY(), 0);
+    }
+
+    public double getGyroDelta() {
+        Rotation2d currentRotation = getRobotRotation2d();
+
+        if (lastGyroRotation == null) {
+            lastGyroRotation = currentRotation;
+            return 0.0;
+        }
+
+        double delta = currentRotation.minus(lastGyroRotation).getDegrees();
+
+        lastGyroRotation = currentRotation;
+
+        return delta;
     }
 
     private void logSwerve() {
