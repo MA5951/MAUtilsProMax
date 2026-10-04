@@ -32,31 +32,25 @@ public class Robot extends DeafultRobot {
 
   private final MAcam feederMacam, intakeMacam, transferMacam;
 
-
   private final TalonFX shooterMaster, shooterSlave, hoodMotor, transferMaster, transferSlave;
 
   private final TalonFXConfiguration masterConfig, slaveConfig, hoodConfig, transferMasterConfig, transferSlaveConfig;
-  
-  private final StatusSignal<AngularVelocity> shooterVelocity;
-  private final StatusSignal<Voltage> shooterVoltage;
-  private final StatusSignal<AngularVelocity> hoodVelocity;
-  private final StatusSignal<Voltage> hoodVoltage;
-  private final StatusSignal<Current> shooterMasterCurrent;
-  private final StatusSignal<Current> shooterSlaveCurrent;
-  private final StatusSignal<Current> hoodCurrent;
-  private final StatusSignal<Current> transferMasterCurrent;
-  private final StatusSignal<Current> transferSlaveCurrent;
 
+  private final StatusSignal<AngularVelocity> shooterVelocity, hoodVelocity;
+  private final StatusSignal<Voltage> shooterVoltage, hoodVoltage;
+
+  private final StatusSignal<Current> transferMasterCurrent, transferSlaveCurrent, hoodCurrent, shooterSlaveCurrent,
+      shooterMasterCurrent;
 
   public Robot() {
     super();
     m_robotContainer = new RobotContainer();
 
-    shooterMaster = new TalonFX(1);
-    shooterSlave = new TalonFX(2);
-    hoodMotor = new TalonFX(3);
-    transferMaster = new TalonFX(4);
-    transferSlave = new TalonFX(5);
+    shooterMaster = new TalonFX(33);
+    shooterSlave = new TalonFX(34);
+    hoodMotor = new TalonFX(37);
+    transferMaster = new TalonFX(42);
+    transferSlave = new TalonFX(43);
 
     masterConfig = new TalonFXConfiguration();
     slaveConfig = new TalonFXConfiguration();
@@ -99,12 +93,11 @@ public class Robot extends DeafultRobot {
     transferSlaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     shooterMaster.getConfigurator().apply(masterConfig);
-    shooterSlave.getConfigurator().apply(slaveConfig);  
+    shooterSlave.getConfigurator().apply(slaveConfig);
     hoodMotor.getConfigurator().apply(hoodConfig);
     transferMaster.getConfigurator().apply(transferMasterConfig);
     transferSlave.getConfigurator().apply(transferSlaveConfig);
 
-   
     shooterVelocity = shooterMaster.getVelocity();
     hoodVelocity = hoodMotor.getVelocity();
     shooterVoltage = shooterMaster.getMotorVoltage();
@@ -115,22 +108,25 @@ public class Robot extends DeafultRobot {
     transferMasterCurrent = transferMaster.getStatorCurrent();
     transferSlaveCurrent = transferSlave.getStatorCurrent();
   }
+
   @Override
   public void robotPeriodic() {
     super.robotPeriodic();
     CommandScheduler.getInstance().run();
 
-   
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+  }
 
   @Override
   public void autonomousInit() {
@@ -140,10 +136,12 @@ public class Robot extends DeafultRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+  }
 
   @Override
   public void teleopInit() {
@@ -193,17 +191,19 @@ public class Robot extends DeafultRobot {
   }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+  }
 
-  
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+  }
 }
