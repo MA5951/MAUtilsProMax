@@ -4,63 +4,196 @@
 
 package frc.robot;
 
+import com.MAutils.CanBus.StatusSignalsRunner;
+import com.MAutils.Components.MACam;
 import com.MAutils.Logger.MALog;
-import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.RobotControl.DeafultRobot;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.StrictFollower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.Subsystems.MAcam.MAcam;
-import frc.robot.Subsystems.Swerve.SwerveConstants;
-import frc.robot.Util.Field;
 
 public class Robot extends DeafultRobot {
   private Command m_autonomousCommand;
+
   private final RobotContainer m_robotContainer;
-  //private final TalonFX motor;
 
-  private MAcam macam;
+  private final StrictFollower shooterControl, transferControl;
 
+  private final MAcam feederMacam, intakeMacam, transferMacam;
+
+
+  private final TalonFX shooterMaster, shooterSlave, hoodMotor, transferMaster, transferSlave;
+
+  private final TalonFXConfiguration masterConfig, slaveConfig, hoodConfig, transferMasterConfig, transferSlaveConfig;
+  
+  private final StatusSignal<AngularVelocity> shooterVelocity;
+  private final StatusSignal<Voltage> shooterVoltage;
+  private final StatusSignal<AngularVelocity> hoodVelocity;
+  private final StatusSignal<Voltage> hoodVoltage;
+  private final StatusSignal<Current> shooterMasterCurrent;
+  private final StatusSignal<Current> shooterSlaveCurrent;
+  private final StatusSignal<Current> hoodCurrent;
+  private final StatusSignal<Current> transferMasterCurrent;
+  private final StatusSignal<Current> transferSlaveCurrent;
 
 
   public Robot() {
     super();
     m_robotContainer = new RobotContainer();
-    PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(3.586,3.596, Rotation2d.fromDegrees(0))));
-    frc.robot.Subsystems.Swerve.Swerve.getInstance();
-    macam = new MAcam(8);
-    
-  }
 
+    shooterMaster = new TalonFX(1);
+    shooterSlave = new TalonFX(2);
+    hoodMotor = new TalonFX(3);
+    transferMaster = new TalonFX(4);
+    transferSlave = new TalonFX(5);
+
+    masterConfig = new TalonFXConfiguration();
+    slaveConfig = new TalonFXConfiguration();
+    hoodConfig = new TalonFXConfiguration();
+    transferMasterConfig = new TalonFXConfiguration();
+    transferSlaveConfig = new TalonFXConfiguration();
+
+    feederMacam = new MAcam(0);
+    intakeMacam = new MAcam(1);
+    transferMacam = new MAcam(2);
+
+    shooterControl = new StrictFollower(shooterMaster.getDeviceID());
+    transferControl = new StrictFollower(transferMaster.getDeviceID());
+
+    masterConfig.Slot0.kP = 0.0;
+    masterConfig.Slot0.kI = 0.0;
+    masterConfig.Slot0.kD = 0.0;
+    masterConfig.Slot0.kV = 0.0;
+    masterConfig.Slot0.kS = 0.0;
+
+    hoodConfig.Slot0.kP = 0.0;
+    hoodConfig.Slot0.kI = 0.0;
+    hoodConfig.Slot0.kD = 0.0;
+    hoodConfig.Slot0.kV = 0.0;
+    hoodConfig.Slot0.kS = 0.0;
+
+    hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    masterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    masterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    slaveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    slaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
+    transferMasterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    transferMasterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    transferSlaveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    transferSlaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
+    shooterMaster.getConfigurator().apply(masterConfig);
+    shooterSlave.getConfigurator().apply(slaveConfig);  
+    hoodMotor.getConfigurator().apply(hoodConfig);
+    transferMaster.getConfigurator().apply(transferMasterConfig);
+    transferSlave.getConfigurator().apply(transferSlaveConfig);
+
+   
+    shooterVelocity = shooterMaster.getVelocity();
+    hoodVelocity = hoodMotor.getVelocity();
+    shooterVoltage = shooterMaster.getMotorVoltage();
+    hoodVoltage = hoodMotor.getMotorVoltage();
+    shooterMasterCurrent = shooterMaster.getStatorCurrent();
+    shooterSlaveCurrent = shooterSlave.getStatorCurrent();
+    hoodCurrent = hoodMotor.getStatorCurrent();
+    transferMasterCurrent = transferMaster.getStatorCurrent();
+    transferSlaveCurrent = transferSlave.getStatorCurrent();
+  }
   @Override
   public void robotPeriodic() {
     super.robotPeriodic();
     CommandScheduler.getInstance().run();
-    MALog.log("Subsystems/MAcam/MAcam distance", macam.getDistanceMM());
+
+   
   }
 
   @Override
-  public void autonomousInit() {
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+  public void disabledInit() {}
 
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void disabledExit() {}
+
+  @Override
+  public void autonomousInit() {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }
 
-  
+  @Override
+  public void autonomousPeriodic() {}
+
+  @Override
+  public void autonomousExit() {}
+
   @Override
   public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    CommandScheduler.getInstance().setDefaultCommand(frc.robot.Subsystems.Swerve.Swerve.getInstance(), new frc.robot.Command.SwerveController());
   }
+
+  @Override
+  public void teleopPeriodic() {
+    if (RobotContainer.getDriverController().getL1()) {
+      shooterMaster.setControl(new VelocityVoltage(5000 / 60));
+      shooterSlave.setControl(shooterControl);
+      hoodMotor.setControl(new VelocityVoltage(1000 / 60));
+      transferMaster.setVoltage(6);
+      transferSlave.setControl(transferControl);
+    } else {
+      shooterMaster.setControl(new VelocityVoltage(0));
+      shooterSlave.setControl(shooterControl);
+      hoodMotor.setControl(new VelocityVoltage(0));
+      transferMaster.setVoltage(0);
+      transferSlave.setControl(transferControl);
+    }
+
+    shooterVelocity.refresh();
+    hoodVelocity.refresh();
+    shooterVoltage.refresh();
+    hoodVoltage.refresh();
+    shooterMasterCurrent.refresh();
+    shooterSlaveCurrent.refresh();
+    hoodCurrent.refresh();
+    transferMasterCurrent.refresh();
+    transferSlaveCurrent.refresh();
+
+    MALog.log("Shooter/Shooter Velocity", shooterVelocity.getValueAsDouble());
+    MALog.log("Hood/Hood Velocity", hoodVelocity.getValueAsDouble());
+    MALog.log("Shooter/Shooter Voltage", shooterVoltage.getValueAsDouble());
+    MALog.log("Hood/Hood Voltage", hoodVoltage.getValueAsDouble());
+    MALog.log("Shooter/Shooter Current", shooterMasterCurrent.getValueAsDouble());
+    MALog.log("Shooter/Shooter Current", shooterSlaveCurrent.getValueAsDouble());
+    MALog.log("Hood/Hood Current", hoodCurrent.getValueAsDouble());
+    MALog.log("Transfer/Transfer Current", transferMasterCurrent.getValueAsDouble());
+    MALog.log("Transfer/Transfer Current", transferSlaveCurrent.getValueAsDouble());
+    MALog.log("Feeder/Feeder MAcam Distance", feederMacam.getDistanceMM());
+    MALog.log("Intake/Intake MAcam Distance", intakeMacam.getDistanceMM());
+    MALog.log("Transfer/Transfer MAcam Distance", transferMacam.getDistanceMM());
+  }
+
+  @Override
+  public void teleopExit() {}
 
   
   @Override
@@ -68,5 +201,9 @@ public class Robot extends DeafultRobot {
     CommandScheduler.getInstance().cancelAll();
   }
 
- 
+  @Override
+  public void testPeriodic() {}
+
+  @Override
+  public void testExit() {}
 }
