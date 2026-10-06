@@ -126,6 +126,12 @@ public class PoseEstimator {
         candidate = candidate.exp(t);
         MALog.log("Pose Estimator/Candidate", candidate);
 
+        MALog.log("PE/ isInHub", !Field.HUB_BLUE.contains(candidate.getTranslation()) &&
+            !Field.HUB_RED.contains(candidate.getTranslation()));
+
+        MALog.log("PE/ isInField", Field.ALLOWED_FIELD.contains(candidate.getTranslation()));
+
+
         if (Field.ALLOWED_FIELD.contains(candidate.getTranslation()) && 
             !Field.HUB_BLUE.contains(candidate.getTranslation()) &&
             !Field.HUB_RED.contains(candidate.getTranslation())) {

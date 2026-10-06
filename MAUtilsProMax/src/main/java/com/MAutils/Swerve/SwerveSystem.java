@@ -295,7 +295,7 @@ public class SwerveSystem extends SubsystemBase {
 
         Twist2d twist = swerveConstants.kinematics.toTwist2d(lastPositions, currentPositions);
 
-        lastPositions = currentPositions;
+        lastPositions = currentPositions.clone();
 
         return twist;
 
