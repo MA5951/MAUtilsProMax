@@ -192,7 +192,6 @@ public class SwerveDriveEstimator {
 
 
         odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp());
-        MALog.log("/PE/Total Delta Y", totalYdelta);
     }
 
 }

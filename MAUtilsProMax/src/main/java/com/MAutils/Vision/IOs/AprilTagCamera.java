@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class AprilTagCamera extends Camera {
 
-    //private final PoseEstimatorSource poseEstimatorSource;
+    private final PoseEstimatorSource poseEstimatorSource;
     public final Supplier<Double> robotAngleSupplier; // degrees
     public final Supplier<Double> robotAngleVelocitySupplier; // degrees/sec
 
@@ -88,12 +88,10 @@ public class AprilTagCamera extends Camera {
                 this.chassisSpeedsSupplier,
                 robotAngleVelocitySupplier); // ADDED
 
-        // poseEstimatorSource = new PoseEstimatorSource(cameraIO.getName(),
-        //         getRobotRelaticTwist(poseEstimate, visionTs),
-        //         xyFom,
-        //         oFom,
-        //         visionTs);
-
+        poseEstimatorSource = new PoseEstimatorSource(cameraIO.getName(),
+                //getRobotRelaticTwist(poseEstimate, visionTs),
+                xyFom,
+                oFom);
         //PoseEstimator.addSource(poseEstimatorSource);
     }
 
@@ -125,7 +123,7 @@ public class AprilTagCamera extends Camera {
             if (cameraIO.isTag() && (cameraIO.getPoseEstimate(FiltersConfig.poseEstimateType).pose.getX() > 0.01)
                     && (cameraIO.getPoseEstimate(FiltersConfig.poseEstimateType).pose.getY() > 0.01)) {
                 getRobotRelaticTwist(poseEstimate, visionTs);
-                //poseEstimatorSource.capture();
+                poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp());
                 PoseEstimationMA.getInstance().addVisionObservation(
                         new VisionObservation(Timer.getFPGATimestamp() - (poseEstimate.latency / 1000.0),
                                 new Pose3d(poseEstimate.pose), VecBuilder.fill(0.07, 0.07, 10)),
@@ -134,7 +132,7 @@ public class AprilTagCamera extends Camera {
             } else {
                 oFom = 0;
                 xyFom = 0;
-                //poseEstimatorSource.capture();
+                poseEstimatorSource.capture(new Twist2d(), Timer.getTimestamp());
                 MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry didn't captured");
 
             }

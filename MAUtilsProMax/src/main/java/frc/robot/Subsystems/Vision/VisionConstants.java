@@ -9,7 +9,7 @@ import frc.robot.Subsystems.Swerve.Swerve;
 
 
 public class VisionConstants {
-        public static final Translation2d LL_OFFSET = new Translation2d(0, 0.00768);
+        public static final Translation2d LL_OFFSET = new Translation2d(0, 0);//0.00768
         public static final double FRONT_LL_HIGHT = 0.57273;
 
 

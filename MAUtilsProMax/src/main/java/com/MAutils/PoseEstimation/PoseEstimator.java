@@ -79,7 +79,6 @@ public class PoseEstimator {
 
     public static void update() {
         applyAtTime(Timer.getFPGATimestamp());
-        MALog.log("PE/ Pose estimation", Timer.getFPGATimestamp());
     }
 
     public static Pose2d getCurrentPose() {
@@ -126,8 +125,8 @@ public class PoseEstimator {
         candidate = candidate.exp(t);
         MALog.log("Pose Estimator/Candidate", candidate);
 
-        MALog.log("PE/ isInHub", !Field.HUB_BLUE.contains(candidate.getTranslation()) &&
-            !Field.HUB_RED.contains(candidate.getTranslation()));
+        MALog.log("PE/ isInHub", Field.HUB_BLUE.contains(candidate.getTranslation()) &&
+            Field.HUB_RED.contains(candidate.getTranslation()));
 
         MALog.log("PE/ isInField", Field.ALLOWED_FIELD.contains(candidate.getTranslation()));
 

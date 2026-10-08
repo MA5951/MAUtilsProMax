@@ -57,8 +57,8 @@ public class AprilTagsFilters {
         amountOftagsSeen = visionCameraIO.getPoseEstimate(config.poseEstimateType).tagCount;
 
         MALog.log("PE/ Limelight/isImpossiblePose", isImpossiblePose());
-        MALog.log("PE/ Limelight/isLinearVelocityInTolerance", isLinearVelocityInTolerance());
-        MALog.log("PE/ Limelight/isAngularVelocityInTolerance", isAngularVelocityInTolerance());
+        MALog.log("PE/ Limelight/isLinearVelocityOutTolerance", isLinearVelocityOutTolerance());
+        MALog.log("PE/ Limelight/isAngularVelocityOutTolerance", isAngularVelocityOutTolerance());
         MALog.log("PE/ Limelight/isOutOfField", isOutOfField());
         MALog.log("PE/ Limelight/isTagAmbiguousTooBig", isTagAmbiguousTooBig());
         MALog.log("PE/ Limelight/isTagSizeTooSmall", isTagSizeTooSmall());
@@ -92,11 +92,11 @@ public class AprilTagsFilters {
         return !isInside;
     }
 
-    public boolean isLinearVelocityInTolerance() {
+    public boolean isLinearVelocityOutTolerance() {
         return Math.hypot(chassisSpeeds.get().vxMetersPerSecond, chassisSpeeds.get().vyMetersPerSecond) > config.maxLinearVelocityMS;
     }
 
-    public boolean isAngularVelocityInTolerance() {
+    public boolean isAngularVelocityOutTolerance() {
         return Math.abs(imuYawVelocitySupplier.get()) > config.maxAngularVelocityRS;
     }
 
@@ -129,7 +129,7 @@ public class AprilTagsFilters {
 
         if (isOutOfField()) return false;
         if (isTagAmbiguousTooBig()) return false;
-        if (isLinearVelocityInTolerance() || isAngularVelocityInTolerance()) return false;
+        if (isAngularVelocityOutTolerance() || isLinearVelocityOutTolerance()) return false;
         if (isTagSizeTooSmall()) return false; 
         if (isImpossiblePose()) return false;
 
