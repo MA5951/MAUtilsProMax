@@ -58,9 +58,9 @@ public class Robot extends DeafultRobot {
     transferMasterConfig = new TalonFXConfiguration();
     transferSlaveConfig = new TalonFXConfiguration();
 
-    feederMacam = new MAcam(0);
-    intakeMacam = new MAcam(1);
-    transferMacam = new MAcam(2);
+    feederMacam = new MAcam(7);
+    intakeMacam = new MAcam(8);
+    transferMacam = new MAcam(9);
 
     shooterControl = new StrictFollower(shooterMaster.getDeviceID());
     transferControl = new StrictFollower(transferMaster.getDeviceID());
@@ -87,10 +87,10 @@ public class Robot extends DeafultRobot {
     slaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     transferMasterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    transferMasterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    transferMasterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     transferSlaveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    transferSlaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    transferSlaveConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     shooterMaster.getConfigurator().apply(masterConfig);
     shooterSlave.getConfigurator().apply(slaveConfig);
@@ -153,15 +153,19 @@ public class Robot extends DeafultRobot {
   @Override
   public void teleopPeriodic() {
     if (RobotContainer.getDriverController().getL1()) {
-      shooterMaster.setControl(new VelocityVoltage(5000 / 60));
+      // shooterMaster.setControl(new VelocityVoltage(5000 / 60));
+      shooterMaster.setVoltage(8);
       shooterSlave.setControl(shooterControl);
-      hoodMotor.setControl(new VelocityVoltage(1000 / 60));
+      // hoodMotor.setControl(new VelocityVoltage(1000 / 60));
+      hoodMotor.setVoltage(8);
       transferMaster.setVoltage(6);
       transferSlave.setControl(transferControl);
     } else {
-      shooterMaster.setControl(new VelocityVoltage(0));
+      // shooterMaster.setControl(new VelocityVoltage(0));
+      shooterMaster.setVoltage(0);
       shooterSlave.setControl(shooterControl);
-      hoodMotor.setControl(new VelocityVoltage(0));
+      // hoodMotor.setControl(new VelocityVoltage(0));
+      hoodMotor.setVoltage(0);
       transferMaster.setVoltage(0);
       transferSlave.setControl(transferControl);
     }
@@ -176,8 +180,8 @@ public class Robot extends DeafultRobot {
     transferMasterCurrent.refresh();
     transferSlaveCurrent.refresh();
 
-    MALog.log("Shooter/Shooter Velocity", shooterVelocity.getValueAsDouble());
-    MALog.log("Hood/Hood Velocity", hoodVelocity.getValueAsDouble());
+    MALog.log("Shooter/Shooter Velocity", shooterVelocity.getValueAsDouble() / 60);
+    MALog.log("Hood/Hood Velocity", hoodVelocity.getValueAsDouble() / 60);
     MALog.log("Shooter/Shooter Voltage", shooterVoltage.getValueAsDouble());
     MALog.log("Hood/Hood Voltage", hoodVoltage.getValueAsDouble());
     MALog.log("Shooter/Shooter Current", shooterMasterCurrent.getValueAsDouble());
