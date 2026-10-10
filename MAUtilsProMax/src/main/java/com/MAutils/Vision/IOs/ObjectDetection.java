@@ -45,9 +45,7 @@ public class ObjectDetection extends Camera {
         super.logIO();
         
 
-        MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Tx", cameraIO.getTarget().tx);
-        MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Ty", cameraIO.getTarget().ty);
-        MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Ta", cameraIO.getTarget().ta);
+        
 
 
     }

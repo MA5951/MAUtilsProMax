@@ -32,11 +32,13 @@ public class AprilTagCamera extends Camera {
     private AprilTagsFilters aprilTagFilters;
     private Transform2d delta;
     private PoseEstimate poseEstimate;
-    private Pose2d visionPose, prior;
+    private Pose2d visionPose;
     private Rotation2d heading;
     private Twist2d visionTwsit = new Twist2d();
     private boolean updatePoseEstiamte = true;
     private double xyFom, oFom, visionTs, fieldDx, fieldDy, fieldDtheta, robotDx, robotDy, fomCOF;
+
+    private Pose2d lastPose2d = new Pose2d();
 
     // ===== ADDED: supplier for chassis speeds so filters can use real v =====
     private final Supplier<ChassisSpeeds> chassisSpeedsSupplier; // ADDED
@@ -92,7 +94,7 @@ public class AprilTagCamera extends Camera {
                 //getRobotRelaticTwist(poseEstimate, visionTs),
                 xyFom,
                 oFom);
-        //PoseEstimator.addSource(poseEstimatorSource);
+        PoseEstimator.addSource(poseEstimatorSource);
     }
 
     public void setUpdatePoseEstimate(boolean updatePoseEstiamte) {
@@ -118,25 +120,12 @@ public class AprilTagCamera extends Camera {
             MALog.log("Subsystems/Vision/Cameras/" + name + "/XY FOM", xyFom);
             MALog.log("Subsystems/Vision/Cameras/" + name + "/Omega FOM", oFom);
 
+            
             visionTs = getVisionTimetemp();
-
-            if (cameraIO.isTag() && (cameraIO.getPoseEstimate(FiltersConfig.poseEstimateType).pose.getX() > 0.01)
-                    && (cameraIO.getPoseEstimate(FiltersConfig.poseEstimateType).pose.getY() > 0.01)) {
-                getRobotRelaticTwist(poseEstimate, visionTs);
-                poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp());
-                PoseEstimationMA.getInstance().addVisionObservation(
-                        new VisionObservation(Timer.getFPGATimestamp() - (poseEstimate.latency / 1000.0),
-                                new Pose3d(poseEstimate.pose), VecBuilder.fill(0.07, 0.07, 10)),
-                        cameraIO.getName());
-                MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
-            } else {
-                oFom = 0;
-                xyFom = 0;
-                poseEstimatorSource.capture(new Twist2d(), Timer.getTimestamp());
-                MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry didn't captured");
-
-            }
-
+            visionTwsit = getRobotRelaticTwist(poseEstimate, visionTs);
+            poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp());
+            MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
+            
         }
 
     }
@@ -147,6 +136,7 @@ public class AprilTagCamera extends Camera {
 
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Ambiguit", tag.ambiguity);
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Id", tag.id);
+        
 
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Pose Estimate/Pose", poseEstimate.pose);
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Pose Estimate/Avg Distance", poseEstimate.avgTagDist);
@@ -166,20 +156,29 @@ public class AprilTagCamera extends Camera {
     private Twist2d getRobotRelaticTwist(PoseEstimate poseEstimator, double timestemp) {
         if(poseEstimator == null) return new Twist2d();
         visionPose = poseEstimate.pose;
-        prior = PoseEstimator.getPoseAt(timestemp);
-        MALog.log("/OdometryDebug/PriorPose", prior);
+        MALog.log("/OdometryDebug/PriorPose", lastPose2d);
 
-        delta = new Transform2d(prior, visionPose);
-        // MALog.log("/OdometryDebug/Delta", new Pose2d(new Translation2d(de),new
-        // Rotation2d(0)));
+        visionTwsit = new Twist2d();
 
-        fieldDx = delta.getTranslation().getX();
-        fieldDy = delta.getTranslation().getY();
-        fieldDtheta = delta.getRotation().getRadians();
 
-        visionTwsit.dx = fieldDx;
-        visionTwsit.dy = fieldDy;
-        visionTwsit.dtheta = fieldDtheta;
+        if(lastPose2d.getX()> 0.01 || lastPose2d.getY() > 0.01) {
+
+            delta = new Transform2d(lastPose2d, visionPose);
+            // MALog.log("/OdometryDebug/Delta", new Pose2d(new Translation2d(de),new
+            // Rotation2d(0)));
+
+            fieldDx = delta.getTranslation().getX();
+            fieldDy = delta.getTranslation().getY();
+            fieldDtheta = delta.getRotation().getRadians();
+
+            visionTwsit.dx = fieldDx;
+            visionTwsit.dy = fieldDy;
+            visionTwsit.dtheta = fieldDtheta;
+
+        }
+
+        
+        lastPose2d = visionPose;
 
         return visionTwsit;
 

@@ -117,15 +117,20 @@ public class AprilTagsFilters {
     }
 
     public double getXYFOM() {
-        return 1;
+        if (isValid()) return  1;
+        return 0;
     }
 
     public double getOFOM() {
-        return 1;
+        if (isValid()) return  1;
+        return 0;
     }
 
     public boolean isValid() {
         if (currentPose == null || currentTag == null || amountOftagsSeen < config.minTagsSeen) return false;   
+
+        if (Math.abs(currentPose.getX()) < 1e-3) return false;
+        if (Math.abs(currentPose.getY()) < 1e-3) return false;
 
         if (isOutOfField()) return false;
         if (isTagAmbiguousTooBig()) return false;
@@ -133,8 +138,7 @@ public class AprilTagsFilters {
         if (isTagSizeTooSmall()) return false; 
         if (isImpossiblePose()) return false;
 
-        if (Math.abs(currentPose.getX()) < 1e-3) return false;
-        if (Math.abs(currentPose.getY()) < 1e-3) return false;
+        
 
         return true;
     }

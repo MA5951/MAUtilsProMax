@@ -74,7 +74,7 @@ public class LimelightIO implements VisionCameraIO {
     }
 
     public void takeSnapshot() {
-        LimelightHelpers.takeSnapshot(cameraName, "Snapshot_" + Timer.getFPGATimestamp());
+        //LimelightHelpers.takeSnapshot(cameraName, "Snapshot_" + Timer.getFPGATimestamp());
     }
 
     public int getPipline() {

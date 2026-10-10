@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 public class FiltersConfig {
 
-    public double maxAmbiguity = 0.4; // Reject if ambiguity > this
+    public double maxAmbiguity = 0.6; // Reject if ambiguity > this
     public double maxDistanceMeters = 6.0; // Reject if pose is too far
 
     public double maxPoseJumpMeters = 0.7; // Reject if new pose is too far from current
@@ -49,7 +49,7 @@ public class FiltersConfig {
     public double maxLinearVelocityMS = 4; // if robot Linear velocity > this => rejects
     public double maxAngularVelocityRS = 400; // if robot Angular velocity > this => rejects Radians per second
 
-    public double smallestTagSize = 0.15; // if the tag size is smaller than this => rejects (TA)
+    public double smallestTagSize = 0.05; // if the tag size is smaller than this => rejects (TA)
 
 
 

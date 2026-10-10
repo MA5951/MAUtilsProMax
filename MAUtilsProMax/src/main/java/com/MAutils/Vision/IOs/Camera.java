@@ -1,6 +1,7 @@
 package com.MAutils.Vision.IOs;
 
 import com.MAutils.Logger.MALog;
+import com.MAutils.Vision.Util.LimelightHelpers;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
 
 public class Camera {
@@ -25,7 +26,7 @@ public class Camera {
     }
 
     protected void logIO() {
-        tag = cameraIO.getTag();
+        tag = LimelightHelpers.getRawFiducials(name)[0];
         MALog.log("Subsystems/Vision/Cameras/" + name +"/Target/Pipline", cameraIO.getPipline());
         MALog.log("Subsystems/Vision/Cameras/" + name +"/Target/Tx", tag.txnc);
         MALog.log("Subsystems/Vision/Cameras/" + name +"/Target/Ty", tag.tync);

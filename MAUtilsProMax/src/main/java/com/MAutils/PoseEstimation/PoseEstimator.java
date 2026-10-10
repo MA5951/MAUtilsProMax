@@ -1,6 +1,8 @@
 package com.MAutils.PoseEstimation;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -37,6 +39,8 @@ public class PoseEstimator {
     private static Pose2d poseBeforeHistory = new Pose2d();
 
     private static final NavigableMap<Double, HistoryEntry> history = new TreeMap<>();
+
+    //private static final Deque<HistoryEntry> history = new ArrayDeque<>();
 
 
     private static Pose2d currentPose = new Pose2d();
@@ -101,6 +105,8 @@ public class PoseEstimator {
     public static Pose2d getPoseAt(double queryTime) {
         Pose2d pose = poseBeforeHistory;
 
+        MALog.log("PE/poseBeforeHistory", pose);
+
         for (HistoryEntry entry :
             history.headMap(queryTime, true).values()) {
 
@@ -108,6 +114,13 @@ public class PoseEstimator {
         }
 
         return pose;
+
+        // Pose2d pose = poseBeforeHistory;
+        // for (HistoryEntry e : history) {
+        //     if (e.time > queryTime) break;
+        //     pose = pose.exp(e.twist);
+        // }
+        // return pose;
     }
 
 
@@ -116,7 +129,7 @@ public class PoseEstimator {
     private static void applyAtTime(double timestamp) {
         //final double dt = Math.max(0.0, timestamp - lastUpdateTime);
 
-        //Twist2d fused = calculateTwist2d(timestamp);
+        Twist2d fused = calculateTwist2d(timestamp);
         //fused = clampTwistByDt(fused, dt);
 
         Pose2d candidate = currentPose;
@@ -135,12 +148,13 @@ public class PoseEstimator {
             !Field.HUB_BLUE.contains(candidate.getTranslation()) &&
             !Field.HUB_RED.contains(candidate.getTranslation())) {
             
-            currentPose = candidate;
+            currentPose = candidate; 
+            //history.addLast(new HistoryEntry(timestamp, fused));
             history.put(timestamp, new HistoryEntry(timestamp, calculateTwist2d(timestamp)));
 
             lastUpdateTime = timestamp;
 
-            cleanupHistory(timestamp);
+            cleanupHistory(Timer.getFPGATimestamp());
             MALog.log("Pose Estimator/Current Pose", currentPose);
 
         } else {
@@ -226,6 +240,16 @@ public class PoseEstimator {
 
 
         history.headMap(firstValidTime, false).clear();
-}
+    }
+
+    // private static void trimHistory() {
+    //     double cutoff = lastUpdateTime - PoseEstimatorSource.BUFFER_DURATION;
+
+    //     while (!history.isEmpty() && history.peekFirst().time < cutoff) {
+    //         HistoryEntry e = history.removeFirst(); // explicit type (more readable here)
+    //         poseBeforeHistory = poseBeforeHistory.exp(e.twist);
+    //         //historyStartTime = e.time;
+    //     }
+    // }
 
 }
