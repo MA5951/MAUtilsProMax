@@ -4,6 +4,7 @@ package com.MAutils.RobotControl;
 
 import com.MAutils.Controllers.MAController;
 import com.MAutils.Controllers.PS5MAController;
+import com.MAutils.Controllers.XboxMAController;
 import com.MAutils.Logger.TelemetryLogger;
 import com.MAutils.Utils.Constants;
 
@@ -18,7 +19,7 @@ public abstract class DeafultRobotContainer {
 
     protected static MRobotState currentRobotState = new MRobotState("IDLE");
     protected static MRobotState lastRobotState = currentRobotState;
-    protected static MAController driverController = new PS5MAController(Constants.DRIVER_CONTROLLER_PORT);
+    protected static MAController driverController = new XboxMAController(Constants.DRIVER_CONTROLLER_PORT);
     protected static MAController operatorController = new PS5MAController(Constants.OPERATOR_CONTROLLER_PORT);
 
 

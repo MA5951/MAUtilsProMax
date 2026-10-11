@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import javax.management.timer.Timer;
+
 import com.MAutils.CanBus.StatusSignalsRunner;
 import com.MAutils.Components.MACam;
 import com.MAutils.Logger.MALog;
@@ -79,12 +81,15 @@ public class Robot extends DeafultRobot {
 
     hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    hoodConfig.OpenLoopRamps.withVoltageOpenLoopRampPeriod(0.1);
 
     masterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     masterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    masterConfig.OpenLoopRamps.withVoltageOpenLoopRampPeriod(0.1);
 
     slaveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     slaveConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    slaveConfig.OpenLoopRamps.withVoltageOpenLoopRampPeriod(0.1);
 
     transferMasterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     transferMasterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -153,12 +158,12 @@ public class Robot extends DeafultRobot {
   @Override
   public void teleopPeriodic() {
     if (RobotContainer.getDriverController().getL1()) {
-      // shooterMaster.setControl(new VelocityVoltage(5000 / 60));
-      shooterMaster.setVoltage(8);
-      shooterSlave.setControl(shooterControl);
       // hoodMotor.setControl(new VelocityVoltage(1000 / 60));
-      hoodMotor.setVoltage(8);
-      transferMaster.setVoltage(6);
+      // shooterMaster.setControl(new VelocityVoltage(5000 / 60));
+      shooterMaster.setVoltage(12);
+      shooterSlave.setControl(shooterControl);
+      hoodMotor.setVoltage(12);
+      transferMaster.setVoltage(8);
       transferSlave.setControl(transferControl);
     } else {
       // shooterMaster.setControl(new VelocityVoltage(0));
@@ -180,8 +185,8 @@ public class Robot extends DeafultRobot {
     transferMasterCurrent.refresh();
     transferSlaveCurrent.refresh();
 
-    MALog.log("Shooter/Shooter Velocity", shooterVelocity.getValueAsDouble() / 60);
-    MALog.log("Hood/Hood Velocity", hoodVelocity.getValueAsDouble() / 60);
+    MALog.log("Shooter/Shooter Velocity", shooterVelocity.getValueAsDouble() * 60);
+    MALog.log("Hood/Hood Velocity", hoodVelocity.getValueAsDouble() * 60);
     MALog.log("Shooter/Shooter Voltage", shooterVoltage.getValueAsDouble());
     MALog.log("Hood/Hood Voltage", hoodVoltage.getValueAsDouble());
     MALog.log("Shooter/Shooter Current", shooterMasterCurrent.getValueAsDouble());
