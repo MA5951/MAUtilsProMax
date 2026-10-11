@@ -19,7 +19,9 @@ import com.MAutils.Swerve.IOs.PhoenixOdometryThread;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModule;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModuleTalonFX;
 import com.MAutils.Swerve.IOs.SwerveModule.SwerveModuleIO.SwerveModuleData;
+import com.MAutils.Swerve.Utils.CollisionDetector;
 import com.MAutils.Swerve.Utils.ModuleLimits;
+import com.MAutils.Swerve.Utils.SkidDetector;
 import com.MAutils.Swerve.Utils.SwerveSetPointGeneratorMA;
 import com.MAutils.Swerve.Utils.SwerveSetpoint;
 import com.MAutils.Swerve.Utils.SwerveState;
@@ -30,7 +32,10 @@ import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Time;
@@ -63,10 +68,10 @@ public class SwerveSystem extends SubsystemBase {
     private SwerveModuleData[] swerveModuleData = new SwerveModuleData[4];
     private final Gyro gyro;
     private ChassisSpeeds currentSpeeds;
-    private SwerveSetpoint swerveSetpoint;
     private final SwerveSetPointGeneratorMA swerveSetPointGeneratorMA;
     private final SwerveModuleState[] currentStates = new SwerveModuleState[4];
     private final SwerveModulePosition[] currentPositions = new SwerveModulePosition[4];
+
 
     private final SwerveSetpointGenerator swerveSetpointGenerator; // TODO you must clean this code as soon as possibal
     private com.pathplanner.lib.util.swerve.SwerveSetpoint currSetpoint = new com.pathplanner.lib.util.swerve.SwerveSetpoint(
@@ -77,6 +82,17 @@ public class SwerveSystem extends SubsystemBase {
                     new SwerveModuleState(),
                     new SwerveModuleState()
             }, DriveFeedforwards.zeros(4));
+
+    private SwerveModulePosition[] lastPositions = new SwerveModulePosition[] {
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d()),
+            new SwerveModulePosition(0, new Rotation2d())
+    };
+
+    private Rotation2d lastGyroRotation;
+    private double gyroDelta;
+    private Translation2d totalDelta = new Translation2d(),  deltaDistance;
 
     public SwerveSystem(SwerveSystemConstants swerveConstants) {
         super();
@@ -118,6 +134,7 @@ public class SwerveSystem extends SubsystemBase {
 
         swerveSetPointGeneratorMA = new SwerveSetPointGeneratorMA(swerveConstants.kinematics,
                 swerveConstants.modulesLocationArry);
+
     }
 
    
@@ -272,6 +289,38 @@ public class SwerveSystem extends SubsystemBase {
 
     public SwerveModule[] getSwerveModules() {
         return swerveModules;
+    }
+
+    public Twist2d getTwist2d(SwerveModulePosition[] currentPositions) {
+
+        Twist2d twist = swerveConstants.kinematics.toTwist2d(lastPositions, currentPositions);
+
+        lastPositions = currentPositions.clone();
+
+        return twist;
+
+    }
+
+    
+    public double getGyroDelta() {
+        Rotation2d currentRotation = getRobotRotation2d();
+        MALog.log("PE/ currentRotation",currentRotation.getDegrees());
+
+
+        if (lastGyroRotation == null) {
+            lastGyroRotation = currentRotation;
+            return 0.0;
+        }
+        MALog.log("PE/ lastRotation",lastGyroRotation.getDegrees());
+
+
+        double delta = currentRotation.getDegrees() - lastGyroRotation.getDegrees();
+
+        lastGyroRotation = currentRotation;
+
+        MALog.log("PE/ GYRO DELTA",delta);
+
+        return delta;
     }
 
     private void logSwerve() {

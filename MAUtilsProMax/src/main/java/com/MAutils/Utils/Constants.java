@@ -19,6 +19,8 @@ public class Constants {
 
     public static final double EPSILON = 1e-9;
 
+    public static final double MIN_FOM_VALUE = 0.01; 
+
 
     public static final SimulationType SIMULATION_TYPE = SimulationType.REPLAY; 
     public static final boolean TUNING_MODE = true; 
