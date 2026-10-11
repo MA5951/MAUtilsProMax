@@ -10,6 +10,7 @@ import com.MAutils.PoseEstimation.PoseEstimatorSource;
 import com.MAutils.Vision.Filters.AprilTagsFilters;
 import com.MAutils.Vision.Filters.FiltersConfig;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
+import com.MAutils.Vision.Util.LimelightHelpers;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 
 import edu.wpi.first.math.VecBuilder;
@@ -136,6 +137,7 @@ public class AprilTagCamera extends Camera {
 
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Ambiguit", tag.ambiguity);
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Target/Id", tag.id);
+
         
 
         MALog.log("Subsystems/Vision/Cameras/" + name + "/Pose Estimate/Pose", poseEstimate.pose);

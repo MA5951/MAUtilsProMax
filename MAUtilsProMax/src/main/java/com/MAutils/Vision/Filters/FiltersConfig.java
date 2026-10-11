@@ -49,7 +49,7 @@ public class FiltersConfig {
     public double maxLinearVelocityMS = 4; // if robot Linear velocity > this => rejects
     public double maxAngularVelocityRS = 400; // if robot Angular velocity > this => rejects Radians per second
 
-    public double smallestTagSize = 0.05; // if the tag size is smaller than this => rejects (TA)
+    public double smallestTagSize = 0.1; // if the tag size is smaller than this => rejects (TA)
 
 
 

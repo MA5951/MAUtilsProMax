@@ -7,6 +7,7 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Utils.Constants;
 import com.MAutils.Vision.IOs.VisionCameraIO;
+import com.MAutils.Vision.Util.LimelightHelpers;
 import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
 
@@ -112,8 +113,9 @@ public class AprilTagsFilters {
 
 
     public boolean isTagSizeTooSmall() {
-        if (currentTag == null) return true;
-        return currentTag.ta < config.smallestTagSize;
+        if (!LimelightHelpers.getTV(visionCameraIO.getName()))  return true;
+
+        return LimelightHelpers.getTA(visionCameraIO.getName()) < config.smallestTagSize;
     }
 
     public double getXYFOM() {
