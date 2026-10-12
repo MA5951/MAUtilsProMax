@@ -10,13 +10,13 @@ public class Vision {
     private int[] tag = Field.ALL_TAGS;
      
     private Vision() {
-        VisionSystem.getInstance().setCameras(VisionConstants.LL);
+        //VisionSystem.getInstance().setCameras(VisionConstants.LL);
 
-        VisionConstants.LL.getCameraIO().allowTags(new int[]{26});
+       // VisionConstants.LL.getCameraIO().allowTags(new int[]{26});
     }
 
     public int getTagID() {
-        return VisionConstants.LL.getCameraIO().getTag().id;
+        return 0;//VisionConstants.LL.getCameraIO().getTag().id;
     }
 
 

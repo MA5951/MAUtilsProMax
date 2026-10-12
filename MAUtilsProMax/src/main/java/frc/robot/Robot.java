@@ -61,8 +61,8 @@ public class Robot extends DeafultRobot {
     transferSlaveConfig = new TalonFXConfiguration();
 
     feederMacam = new MAcam(7);
-    intakeMacam = new MAcam(8);
-    transferMacam = new MAcam(9);
+    intakeMacam = new MAcam(9);
+    transferMacam = new MAcam(8);
 
     shooterControl = new StrictFollower(shooterMaster.getDeviceID());
     transferControl = new StrictFollower(transferMaster.getDeviceID());
@@ -70,14 +70,14 @@ public class Robot extends DeafultRobot {
     masterConfig.Slot0.kP = 0.0;
     masterConfig.Slot0.kI = 0.0;
     masterConfig.Slot0.kD = 0.0;
-    masterConfig.Slot0.kV = 0.0;
-    masterConfig.Slot0.kS = 0.0;
+    masterConfig.Slot0.kV = 0.12;
+    masterConfig.Slot0.kS = 0.42;
 
-    hoodConfig.Slot0.kP = 0.0;
+    hoodConfig.Slot0.kP = 0.080;
     hoodConfig.Slot0.kI = 0.0;
     hoodConfig.Slot0.kD = 0.0;
-    hoodConfig.Slot0.kV = 0.0;
-    hoodConfig.Slot0.kS = 0.0;
+    hoodConfig.Slot0.kV = 0.115;
+    hoodConfig.Slot0.kS = 0.19;
 
     hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -158,14 +158,17 @@ public class Robot extends DeafultRobot {
   @Override
   public void teleopPeriodic() {
     if (RobotContainer.getDriverController().getL1()) {
-      // hoodMotor.setControl(new VelocityVoltage(1000 / 60));
-      // shooterMaster.setControl(new VelocityVoltage(5000 / 60));
-      shooterMaster.setVoltage(12);
+      //hoodMotor.setControl(new VelocityVoltage(1000 / 60));
+      //shooterMaster.setControl(new VelocityVoltage(2500 / 60));
+      shooterMaster.setVoltage(8);
       shooterSlave.setControl(shooterControl);
-      hoodMotor.setVoltage(12);
-      transferMaster.setVoltage(8);
+      hoodMotor.setVoltage(8);
+      transferMaster.setVoltage(0.5);
       transferSlave.setControl(transferControl);
-    } else {
+    } else if (RobotContainer.getDriverController().getR1()) {
+      transferMaster.setVoltage(-2);
+      transferSlave.setControl(transferControl);
+    } else { 
       // shooterMaster.setControl(new VelocityVoltage(0));
       shooterMaster.setVoltage(0);
       shooterSlave.setControl(shooterControl);

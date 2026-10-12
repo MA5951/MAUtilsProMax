@@ -40,7 +40,7 @@ public class DeafultRobot extends TimedRobot {
     public void robotPeriodic() {
         StatusSignalsRunner.refreshAll();
         CommandScheduler.getInstance().run();
-        PoseEstimator.update();
+        //PoseEstimator.update();
 
         log();
 

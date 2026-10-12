@@ -16,8 +16,8 @@ public class VisionConstants {
 
         public static final FiltersConfig DEFAULT_FILTERS_CONFIG = new FiltersConfig();
                
-        public static final AprilTagCamera LL = new AprilTagCamera(
-                        new LimelightIO("limelight-frontll", Swerve.getInstance().getAbsYawSupplier()), DEFAULT_FILTERS_CONFIG,
-                        Swerve.getInstance().getAbsYawSupplier(), () -> Swerve.getInstance().getChassisSpeeds() , () -> Swerve.getInstance().getGyroData().yawVelocity , 0.8);
+        // public static final AprilTagCamera LL = new AprilTagCamera(
+        //                 new LimelightIO("limelight-frontll", Swerve.getInstance().getAbsYawSupplier()), DEFAULT_FILTERS_CONFIG,
+        //                 Swerve.getInstance().getAbsYawSupplier(), () -> Swerve.getInstance().getChassisSpeeds() , () -> Swerve.getInstance().getGyroData().yawVelocity , 0.8);
 
 }
