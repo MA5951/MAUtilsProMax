@@ -62,8 +62,8 @@ public class PoseEstimatorSource {
         buffer.addSample(timestamp, p);
     }
 
-   public void capture(Twist2d twist2d, double timestamp) {
-        if (twist2d == null || fomXY == null || fomTheta == null) {
+   public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY) {
+        if (twist2d == null) {
             MALog.log("PE/sorce/"+ name, "null");
             return;
         }

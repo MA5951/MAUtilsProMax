@@ -40,13 +40,13 @@ public class FiltersConfig {
 
     /** Motion-cone model: v*dt + 0.5*aMax*dt^2 + margin (meters). */
     public double aMax = 6.0; // ADDED
-    public double motionMarginMeters = 0.3; // ADDED
+    public double motionMarginMeters = 0.5; // ADDED
     public double idleBubbleMeters = 0.07; // ADDED
 
     /** Minimum trust to consider a measurement useful. */
     public double minAcceptTrust = 0.05; // ADDED
 
-    public double maxLinearVelocityMS = 4; // if robot Linear velocity > this => rejects
+    public double maxLinearVelocityMS = 3.7; // if robot Linear velocity > this => rejects
     public double maxAngularVelocityRS = 400; // if robot Angular velocity > this => rejects Radians per second
 
     public double smallestTagSize = 0.1; // if the tag size is smaller than this => rejects (TA)

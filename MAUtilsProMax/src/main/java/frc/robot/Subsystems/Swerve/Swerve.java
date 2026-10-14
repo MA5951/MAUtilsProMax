@@ -32,6 +32,8 @@ public class Swerve extends SwerveSystem{
     @Override
     public void periodic() {
         super.periodic();
+
+        MALog.log("Subsystems/Swerve/tilt angle", getTiltAngle());
     }
 
 

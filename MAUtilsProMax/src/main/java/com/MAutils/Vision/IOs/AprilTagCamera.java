@@ -109,7 +109,9 @@ public class AprilTagCamera extends Camera {
     // TODO need to also consider isValidForHeadingReset
     @Override
     public void update() {
-        aprilTagFilters.update();
+        visionPose = cameraIO.getPoseEstimate(aprilTagFilters.config.poseEstimateType).pose;
+        
+        aprilTagFilters.update(visionPose,lastPose2d);
         cameraIO.update();
         poseEstimate = cameraIO.getPoseEstimate(getFiltersConfig().poseEstimateType);
         logIO();
@@ -117,16 +119,17 @@ public class AprilTagCamera extends Camera {
         if (updatePoseEstiamte) {
             xyFom = aprilTagFilters.getXYFOM(); // CHANGED: now computed by yaw/motion gates
             oFom = aprilTagFilters.getOFOM(); // CHANGED
-
-            MALog.log("Subsystems/Vision/Cameras/" + name + "/XY FOM", xyFom);
-            MALog.log("Subsystems/Vision/Cameras/" + name + "/Omega FOM", oFom);
-
-            
+         
             visionTs = getVisionTimetemp();
-            visionTwsit = getRobotRelaticTwist(poseEstimate, visionTs);
-            poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp());
+            visionTwsit = getRobotRelaticTwist(visionPose, visionTs);
+            poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp(), oFom, xyFom);
             MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
             
+        }
+
+        if(!aprilTagFilters.isImpossiblePose()  || aprilTagFilters.isAtHomePose(visionPose) ) {
+            lastPose2d = visionPose;
+            MALog.log("PE/ Limelight/ lastPose", lastPose2d);
         }
 
     }
@@ -155,7 +158,7 @@ public class AprilTagCamera extends Camera {
 
     // TODO add get raw pose value,without fom or filters just pose3d
 
-    private Twist2d getRobotRelaticTwist(PoseEstimate poseEstimator, double timestemp) {
+    private Twist2d getRobotRelaticTwist(Pose2d poseEstimator, double timestemp) {
         if(poseEstimator == null) return new Twist2d();
         visionPose = poseEstimate.pose;
         MALog.log("/OdometryDebug/PriorPose", lastPose2d);
@@ -163,7 +166,7 @@ public class AprilTagCamera extends Camera {
         visionTwsit = new Twist2d();
 
 
-        if(lastPose2d.getX()> 0.01 || lastPose2d.getY() > 0.01) {
+        if(aprilTagFilters.isValid() &&(lastPose2d.getX()> 0.01 || lastPose2d.getY() > 0.01)) {
 
             delta = new Transform2d(lastPose2d, visionPose);
             // MALog.log("/OdometryDebug/Delta", new Pose2d(new Translation2d(de),new

@@ -191,7 +191,7 @@ public class SwerveDriveEstimator {
         loopTwistSum.dtheta = odometryTwist.dtheta;
 
 
-        odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp());
+        odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp(), getRotationFOM(), getTranslationFOM());
     }
 
 }

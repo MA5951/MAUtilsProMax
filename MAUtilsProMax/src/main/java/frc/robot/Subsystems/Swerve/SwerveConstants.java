@@ -61,7 +61,7 @@ public class SwerveConstants {
                         .withContinuesInput(-180, 180)
                         .withTolerance(0.5);
 
-        public static final PIDController ABS_MOTION_PID_CONTROLLER = new PIDController(0.03, 0, 0)
+        public static final PIDController ABS_MOTION_PID_CONTROLLER = new PIDController(0.06, 0, 0)
                         .withContinuesInput(-180, 180)
                         .withTolerance(5);
 
@@ -99,13 +99,6 @@ public class SwerveConstants {
                         .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.3, 0.20))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
-        public static final SwerveState ABS_CENTERING = new SwerveState("ABS Centering")
-                        .withOnStateEnter(() -> {
-                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getNext90());
-                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-
-                        }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
 
 
         public static final SwerveState REL_CENTRING = new SwerveState("REL Centring")
@@ -164,6 +157,28 @@ public class SwerveConstants {
                         .withXY(XY_ADJUST_CONTROLLER)
                         .withOmega(ANGLE_ADJUST_CONTROLLER);
 
+
+
+        public static final SwerveState RAMP_40 = new SwerveState("RAMP")
+                        .withOnStateEnter(() -> {
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_MOTION_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getCloses45Deg());
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                                FIELD_CENTRIC_DRIVE.withSclers(0.3, 0.20);
+                        })
+                        .withOmega(ANGLE_ADJUST_CONTROLLER)
+                        .withXY(FIELD_CENTRIC_DRIVE);
+
+        public static final SwerveState RAMP = new SwerveState("RAMP")
+                        .withOnStateEnter(() -> {
+                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_MOTION_PID_CONTROLLER);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getCloses45Deg());
+                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+                                FIELD_CENTRIC_DRIVE.withSclers(0.85, 0.35);
+                        })
+                        .withOmega(ANGLE_ADJUST_CONTROLLER)
+                        .withXY(FIELD_CENTRIC_DRIVE);
+
         public static double getAbsAngleToTargetFuter() {
 
                 double xDis = Field.getHub().getX()
@@ -188,16 +203,10 @@ public class SwerveConstants {
                                 .plus(offsetRobot.rotateBy(robotPoseField.getRotation()));
         }
 
-
-       public static double getNext90() {
-                double currentYaw = MathUtil.inputModulus(Swerve.getInstance().getAbsYawSupplier().get(), 0.0, 360.0);
-    
-                // 2. חישוב האינדקס הבא (תוספת 1 כדי להתקדם ל-90 הבא בשרשרת)
-                int nextIndex = (int) (currentYaw / 90.0) + 1;
-    
-                // 3. תרגום הזווית בחזרה לטווח העבודה של ה-PID [-180, 180]
-                double targetAngle = nextIndex * 90.0;
-                return MathUtil.inputModulus(targetAngle+2, -180.0, 180.0);
+        public static double getCloses45Deg() {
+                int index = (int)((Swerve.getInstance().getAbsYaw())/90);
+                return (90*index) + (45 * Math.signum(Swerve.getInstance().getAbsYaw()));
         }
+
 
 }

@@ -12,20 +12,22 @@ import com.MAutils.Vision.Util.LimelightHelpers.PoseEstimate;
 import com.MAutils.Vision.Util.LimelightHelpers.RawFiducial;
 
 import edu.wpi.first.math.geometry.Ellipse2d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 
 public class AprilTagsFilters {
 
-    private FiltersConfig config;
+    public FiltersConfig config;
     private final VisionCameraIO visionCameraIO;
     private final Supplier<ChassisSpeeds> chassisSpeeds;
     private final Supplier<Double> imuYawVelocitySupplier; 
 
 
-    private Translation2d currentPose = new Translation2d();
-    private Translation2d lastPose = new Translation2d();
+    private Pose2d currentPose = new Pose2d();
+    private Pose2d lastPose = new Pose2d();
+
     private RawFiducial currentTag;
     private double currentMeasurementTime;
     private double amountOftagsSeen = 0;
@@ -36,7 +38,9 @@ public class AprilTagsFilters {
 
     private  boolean isInside = false;
 
+
     private Ellipse2d c;
+
 
     public AprilTagsFilters(FiltersConfig config, 
                            VisionCameraIO visionCameraIO, 
@@ -48,12 +52,14 @@ public class AprilTagsFilters {
         this.chassisSpeeds = chassisSpeedsSupplier;
         this.imuYawVelocitySupplier = imuYawVelocitySupplier;
         currentMeasurementTime = Timer.getFPGATimestamp();
-        currentPose = null;
     }
 
-    public void update() {
-        lastPose = currentPose;
-        this.currentPose = visionCameraIO.getPoseEstimate(config.poseEstimateType).pose.getTranslation();
+    public void update(Pose2d currentPose, Pose2d lastPose) {
+
+        this.currentPose = currentPose;
+        this.lastPose = lastPose;
+
+        
         this.currentTag = visionCameraIO.getTag();
         amountOftagsSeen = visionCameraIO.getPoseEstimate(config.poseEstimateType).tagCount;
 
@@ -64,29 +70,31 @@ public class AprilTagsFilters {
         MALog.log("PE/ Limelight/isTagAmbiguousTooBig", isTagAmbiguousTooBig());
         MALog.log("PE/ Limelight/isTagSizeTooSmall", isTagSizeTooSmall());
 
-        
         MALog.log("PE/ Limelight/pose",currentPose);
 
+        MALog.log("PE/ Limelight/is Valid",isValid());
+    }
+
+    public boolean isAtHomePose( Pose2d p) {
+        return p.getX() < 1e-3 || p.getY() < 1e-3;
     }
 
     public boolean isImpossiblePose() {
-
         if (currentPose == null || lastPose == null) {
             return true; 
         }
 
-        if(Math.abs(lastPose.getX()) < 1e-3 || Math.abs(lastPose.getY()) < 1e-3) {
-            return true;
-        }
+        if(isAtHomePose(lastPose)&& !isAtHomePose(currentPose)) return false;
+
         linearVelocity = Math.hypot(chassisSpeeds.get().vxMetersPerSecond, chassisSpeeds.get().vyMetersPerSecond);
 
         radius = (linearVelocity * dt) + config.motionMarginMeters;
 
-        
-        c = new Ellipse2d(PoseEstimator.getCurrentPose().getTranslation(), radius);//cAHNGE CURRENT POSE TO POSE ESTIMATE
+        c = new Ellipse2d(lastPose.getTranslation(), radius);
 
-        isInside = c.contains(currentPose);
+        isInside = c.contains(currentPose.getTranslation());
 
+        MALog.log("PE/ Limelight/ isInside", isInside);
 
         currentMeasurementTime = Timer.getFPGATimestamp();
 
@@ -103,7 +111,7 @@ public class AprilTagsFilters {
 
     public boolean isOutOfField() {
         if (currentPose == null)  return true;
-        return !config.fieldRactangle.contains(currentPose);
+        return !config.fieldRactangle.contains(currentPose.getTranslation());
     }
 
     public boolean isTagAmbiguousTooBig() {
@@ -139,9 +147,6 @@ public class AprilTagsFilters {
         if (isAngularVelocityOutTolerance() || isLinearVelocityOutTolerance()) return false;
         if (isTagSizeTooSmall()) return false; 
         if (isImpossiblePose()) return false;
-
-        
-
         return true;
     }
 }
