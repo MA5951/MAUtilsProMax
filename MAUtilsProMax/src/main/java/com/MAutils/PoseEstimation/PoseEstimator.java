@@ -16,6 +16,7 @@ import com.MAutils.Logger.TelemetryLogger;
 import com.MAutils.PoseEstimation.Helpers.HistoryEntry;
 import com.MAutils.PoseEstimation.Helpers.Measurement;
 import com.MAutils.Utils.Constants;
+import com.MAutils.Vision.IOs.AprilTagCamera;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -129,7 +130,7 @@ public class PoseEstimator {
     private static void applyAtTime(double timestamp) {
         //final double dt = Math.max(0.0, timestamp - lastUpdateTime);
 
-        Twist2d fused = calculateTwist2d(timestamp);
+        //Twist2d fused = calculateTwist2d(timestamp);
         //fused = clampTwistByDt(fused, dt);
 
         Pose2d candidate = currentPose;

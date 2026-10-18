@@ -122,8 +122,14 @@ public class AprilTagCamera extends Camera {
          
             visionTs = getVisionTimetemp();
             visionTwsit = getRobotRelaticTwist(visionPose, visionTs);
-            poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp(), oFom, xyFom);
-            MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
+            if(aprilTagFilters.isAtHomePose(lastPose2d) && aprilTagFilters.isValid()) {
+                PoseEstimator.resetPose(visionPose);
+                MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Reseat pose ");
+
+            } else {
+                poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp(), oFom, xyFom);
+                MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
+            }
             
         }
 
@@ -193,4 +199,5 @@ public class AprilTagCamera extends Camera {
         return cameraIO.isTag() && cameraIO.getFiducials().length > 1 && cameraIO.getTag().distToCamera < 2
                 && cameraIO.getPoseEstimate(VisionCameraIO.PoseEstimateType.MT1).pose.getX() != -1;
     }
+
 }
