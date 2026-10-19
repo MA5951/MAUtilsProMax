@@ -79,6 +79,10 @@ public class AprilTagsFilters {
         return p.getX() < 1e-3 || p.getY() < 1e-3;
     }
 
+    public boolean isNeededToResetPose() {
+        return isAtHomePose(lastPose) && isValid() ;
+    }
+
     public boolean isImpossiblePose() {
         if (currentPose == null || lastPose == null) {
             return true; 

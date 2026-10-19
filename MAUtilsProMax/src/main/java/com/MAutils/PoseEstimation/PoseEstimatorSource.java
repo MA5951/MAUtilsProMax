@@ -8,6 +8,7 @@ import com.MAutils.PoseEstimation.Helpers.Measurement;
 import com.MAutils.Utils.Constants;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.Timer;
@@ -62,7 +63,28 @@ public class PoseEstimatorSource {
         buffer.addSample(timestamp, p);
     }
 
-   public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY) {
+   public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY, boolean isHardReset, Pose2d p) {
+        if (twist2d == null) {
+            MALog.log("PE/sorce/"+ name, "null");
+            return;
+        }
+        if(isHardReset) {
+            PoseEstimator.resetPose(p);
+            return;
+        }
+        Twist2d delta = safeTwist(twist2d);
+        double fxy = safePos(fomXY);
+        double fth = safePos(fomTheta);
+        MALog.log("Pose Estimator/Sources/"+ name +"/Twist/X", delta.dx);
+        MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Y", delta.dy);
+        MALog.log("Pose Estimator/Sources/"+ name +"/Twist/Theta", delta.dtheta);
+        MALog.log("Pose Estimator/Sources/"+ name +"/FOM XY", fxy);
+        MALog.log("Pose Estimator/Sources/"+ name +"/FOM Theta", fth);
+        MALog.log("Pose Estimator/Sources/"+ name +"/Timestemp", timestamp);
+        addMeasurement(delta, fxy, fth, timestamp);
+    }
+
+    public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY) {
         if (twist2d == null) {
             MALog.log("PE/sorce/"+ name, "null");
             return;
