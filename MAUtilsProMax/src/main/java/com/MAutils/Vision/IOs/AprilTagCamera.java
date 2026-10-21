@@ -162,13 +162,13 @@ public class AprilTagCamera extends Camera {
 
     private Twist2d getRobotRelaticTwist(Pose2d poseEstimator, double timestemp) {
         if(poseEstimator == null) return new Twist2d();
-        visionPose = poseEstimate.pose;
+        //visionPose = poseEstimate.pose;
         MALog.log("/OdometryDebug/PriorPose", lastPose2d);
 
         visionTwsit = new Twist2d();
 
 
-        if(aprilTagFilters.isValid() &&(lastPose2d.getX()> 0.01 || lastPose2d.getY() > 0.01)) {
+        if(aprilTagFilters.isValid() &&(!aprilTagFilters.isAtHomePose(lastPose2d))) {
 
             delta = new Transform2d(lastPose2d, visionPose);
             // MALog.log("/OdometryDebug/Delta", new Pose2d(new Translation2d(de),new

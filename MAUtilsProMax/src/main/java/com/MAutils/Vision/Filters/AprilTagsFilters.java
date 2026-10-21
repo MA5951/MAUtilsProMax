@@ -136,7 +136,6 @@ public class AprilTagsFilters {
     }
 
     public double getOFOM() {
-        if (isValid()) return  1;
         return 0;
     }
 

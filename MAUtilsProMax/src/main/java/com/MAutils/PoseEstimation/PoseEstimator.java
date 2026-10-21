@@ -157,10 +157,13 @@ public class PoseEstimator {
 
             cleanupHistory(Timer.getFPGATimestamp());
             MALog.log("Pose Estimator/Current Pose", currentPose);
+            MALog.log("Pose Estimator/update?",true);
+
 
         } else {
             outOfFieldBool = true;
-            TelemetryLogger.logPoseEstimator("Update rejected: Pose is outside the field boundaries");
+            MALog.log("Pose Estimator/update?, outside of field boundries",false);
+
         }
     }
 
