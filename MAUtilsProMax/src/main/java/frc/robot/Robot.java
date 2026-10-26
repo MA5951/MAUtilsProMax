@@ -7,12 +7,16 @@ package frc.robot;
 import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.RobotControl.DeafultRobot;
+import com.MAutils.Swerve.SwerveAutoFollower;
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Command.Auto.Testing;
 import frc.robot.Util.Field;
 
 public class Robot extends DeafultRobot {
@@ -25,6 +29,9 @@ public class Robot extends DeafultRobot {
     m_robotContainer = new RobotContainer();
     PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(0.4,0.4, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
+
+    //FollowPathCommand.warmupCommand().schedule();
+    //PathfindingCommand.warmupCommand().schedule();
     
   }
 
@@ -32,15 +39,18 @@ public class Robot extends DeafultRobot {
   public void robotPeriodic() {
     super.robotPeriodic();
     CommandScheduler.getInstance().run();
+    MALog.log("PathPlanner/starting pose", SwerveAutoFollower.getStartPose("P1"));
   }
 
   @Override
   public void autonomousInit() {
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    // m_autonomousCommand = new Testing();
 
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
+    // if (m_autonomousCommand != null) {
+    //   CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    // }
+
+    CommandScheduler.getInstance().schedule(RobotContainer.autoSelector.getSelectedAuto().getAutoCommand());
   }
 
   

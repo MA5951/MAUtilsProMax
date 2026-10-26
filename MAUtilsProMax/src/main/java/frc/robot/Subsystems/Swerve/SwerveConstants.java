@@ -33,7 +33,7 @@ import frc.robot.Util.Field;
 public class SwerveConstants {
 
 
-        public static final GainConfig driveGainConfig = new GainConfig().withKV(0.7).withKS(0.27).withKP(1);
+        public static final GainConfig driveGainConfig = new GainConfig().withKV(0.7).withKS(0.27).withKP(1.2);
         public static final GainConfig turnGainConfig = new GainConfig().withKP(55).withKS(0.3);
 
         public static double setPoint;
@@ -76,6 +76,11 @@ public class SwerveConstants {
         public static final PIDController ABS_X_PID_CONTROLLER = new PIDController(0, 0, 0).withTolerance(0.05);// front // 3.5
 
         public static final PIDController ABS_Y_PID_CONTROLLER = new PIDController(2.5, 0, 0).withTolerance(0.05);
+
+        public static final PathConstraints constraints = new PathConstraints(
+                        4, 3,
+                        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
 
 
         // Swerve Drive Controllers
