@@ -10,7 +10,7 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimationMA.OdometryObservation;
 import com.MAutils.PoseEstimation.PoseEstimator;
-import com.MAutils.PoseEstimation.SwerveDriveEstimator;
+import com.MAutils.PoseEstimation.SwerveDriveEstimato1;
 import com.MAutils.Simulation.Simulatables.SwerveSimulation;
 import com.MAutils.Simulation.SimulationManager;
 import com.MAutils.Swerve.IOs.Gyro.Gyro;
@@ -48,7 +48,7 @@ public class SwerveSystem extends SubsystemBase {
     // private static SwerveSystem instance;
 
     private SwerveState currentState = new SwerveState("NONE");
-    private SwerveDriveEstimator swerveDriveEstimator;
+    private SwerveDriveEstimato1 swerveDriveEstimator;
 
     private SwerveSetpoint currentSetpointMA = new SwerveSetpoint(
             new ChassisSpeeds(),
@@ -110,7 +110,7 @@ public class SwerveSystem extends SubsystemBase {
             SimulationManager.registerSimulatable(new SwerveSimulation(swerveConstants));
         }
 
-        swerveDriveEstimator = new SwerveDriveEstimator(swerveConstants, this);
+        swerveDriveEstimator = new SwerveDriveEstimato1(swerveConstants, this);
 
         PhoenixOdometryThread.getInstance(swerveConstants).start();
 

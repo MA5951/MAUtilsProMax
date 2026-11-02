@@ -26,12 +26,10 @@ public class Robot extends DeafultRobot {
 
   public Robot() {
     super();
-    m_robotContainer = new RobotContainer();
-    PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(0.4,0.4, Rotation2d.fromDegrees(0))));
     frc.robot.Subsystems.Swerve.Swerve.getInstance();
+    PoseEstimator.resetPose(Field.flipByAlliance(new Pose2d(0.4, 0.4, Rotation2d.fromDegrees(0))));
 
-    //FollowPathCommand.warmupCommand().schedule();
-    //PathfindingCommand.warmupCommand().schedule();
+    m_robotContainer = new RobotContainer();
     
   }
 
