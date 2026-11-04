@@ -118,7 +118,7 @@ public class SwerveConstants {
         public static final SwerveState REL_CENTRING = new SwerveState("REL Centring")
                         .withOnStateEnter(() -> {
                                 ANGLE_ADJUST_CONTROLLER.withPIDController(REL_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getAngleToHubAbs());
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getHubAngle());
                                 ANGLE_ADJUST_CONTROLLER
                                                 .withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
                         }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
@@ -228,13 +228,14 @@ public class SwerveConstants {
         }
 
         public static double getHubAngle() {
+                double gyro = ContinuesInput(Swerve.getInstance().getAbsYaw());
+
                 if (Vision.getInstance().getTagID() == 0)
-                        return 0;
+                        return gyro;
                 double d = Vision.getInstance().getRawTrigDistance();
                 MALog.log("Subsystems/Swerve/d", d);
 
-                double a = 90 - LimelightHelpers.getTX(VisionConstants.LL.getCameraIO().getName())
-                                - Swerve.getInstance().getAbsYaw();
+                double a = 90 -Math.signum(LimelightHelpers.getTX(VisionConstants.LL.getCameraIO().getName()) +gyro) * (LimelightHelpers.getTX(VisionConstants.LL.getCameraIO().getName()) - gyro);
                 MALog.log("Subsystems/Swerve/a", a);
 
                 double x = d * Math.cos(Math.toRadians(a));
@@ -244,21 +245,21 @@ public class SwerveConstants {
                 MALog.log("Subsystems/Swerve/y", y);
 
                 // חישוב הזווית האבסולוטית של ההאב ביחס לאפס של הג'יירו
-                double absoluteTargetAngle = Math.toDegrees(Math.atan((y + l) / x) - a);//
+                double absoluteTargetAngle = Math.toDegrees(Math.atan2((y + l) , x) );//
 
-                return absoluteTargetAngle - a;
+                return absoluteTargetAngle - (90-gyro) + gyro*-Math.signum(gyro);
         }
 
-        // public static double ContinuesInput(double a) {
-        // double modulus = 360.0;
-        // double minimumInput = -180.0;
-        // double maximumInput = 180.0;
+        public static double ContinuesInput(double a) {
+                double modulus = 360.0;
+                double minimumInput = -180.0;
+                double maximumInput = 180.0;
 
-        // // מניעת שגיאות עיגול/שארית שלילית ב-Java
-        // a = a - Math.floor((a - minimumInput) / modulus) * modulus;
+        // מניעת שגיאות עיגול/שארית שלילית ב-Java
+                a = a - Math.floor((a - minimumInput) / modulus) * modulus;
 
-        // return a;
-        // }
+        return a;
+        }
 
         public static double getAngleToHubAbs() {
                 double xDis = Field.getHub().getX() - poseAdjust(PoseEstimator.getCurrentPose(),
