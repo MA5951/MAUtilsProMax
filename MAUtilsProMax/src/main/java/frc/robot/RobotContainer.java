@@ -5,8 +5,10 @@ import com.MAutils.AutoChooser.AutoSelector;
 import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimator;
+import com.MAutils.PoseEstimation.PoseEstimatorSource;
 import com.MAutils.RobotControl.DeafultRobotContainer;
 import com.MAutils.Swerve.SwerveAutoFollower;
+import com.MAutils.Swerve.SwerveSystem;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -25,17 +27,18 @@ public class RobotContainer extends DeafultRobotContainer {
 
     Vision.getInstance();
 
-    new SwerveAutoFollower();
 
-      //NamedCommands.registerCommand("Intake",new InstantCommand(() -> RobotConstants.INTAKE_DEPLOY.setState()));
-    //NamedCommands.registerCommand("coast",new InstantCommand(() -> MALog.log("FAHHHHHHHHHH", "SHIT")));//Swerve.getInstance().isBrake(false)));
+    //NamedCommands.registerCommand("Intake",new InstantCommand(() -> RobotConstants.INTAKE_DEPLOY.setState()));
+
     autoSelector.setAutoOptions(RobotConstants.TEST);
 
   }
 
   @Override
   public void configAuto() {
-      
+    new SwerveAutoFollower();
+
+    NamedCommands.registerCommand("coast",new InstantCommand(() ->Swerve.getInstance().isBrake(false)));
   }
 
   @Override
@@ -45,6 +48,14 @@ public class RobotContainer extends DeafultRobotContainer {
 
     new Trigger(() -> getDriverController().getDpadDown()).onTrue(
         new InstantCommand(() -> PoseEstimator.resetPose(VisionConstants.LL.getCameraIO()
+            .getPoseEstimate(PoseEstimateType.MT1).pose)));
+
+    new Trigger(() -> getDriverController().getDpadDown()).onTrue(
+        new InstantCommand(() -> Swerve.getInstance().getSwerveDriveEstimator().reasetPose(VisionConstants.LL.getCameraIO()
+            .getPoseEstimate(PoseEstimateType.MT1).pose)));
+
+    new Trigger(() -> PoseEstimatorSource.isReaset()).onTrue(
+        new InstantCommand(() -> Swerve.getInstance().getSwerveDriveEstimator().reasetPose(VisionConstants.LL.getCameraIO()
             .getPoseEstimate(PoseEstimateType.MT1).pose)));
 
     // new Trigger(() -> getDriverController().getDpadDown()).onTrue(

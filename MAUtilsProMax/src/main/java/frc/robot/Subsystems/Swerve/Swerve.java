@@ -12,7 +12,8 @@ public class Swerve extends SwerveSystem{
     private static Swerve instance;
 
     private Swerve() {
-        super(SwerveConstants.SWERVE_CONSTANTS); 
+        super(SwerveConstants.SWERVE_CONSTANTS);
+        SwerveConstants.angle = getAbsYaw(); 
     }
 
 
@@ -34,6 +35,10 @@ public class Swerve extends SwerveSystem{
         super.periodic();
 
         MALog.log("Subsystems/Swerve/tilt angle", getTiltAngle());
+        MALog.log("Subsystems/Swerve/hub angle", SwerveConstants.getHubAngle());
+       // MALog.log("Subsystems/Swerve/continu ", SwerveConstants.ContinuesInput(getAbsYaw()));
+
+
     }
 
 

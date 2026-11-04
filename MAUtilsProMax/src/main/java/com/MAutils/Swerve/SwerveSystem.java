@@ -10,7 +10,7 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimationMA;
 import com.MAutils.PoseEstimation.PoseEstimationMA.OdometryObservation;
 import com.MAutils.PoseEstimation.PoseEstimator;
-import com.MAutils.PoseEstimation.SwerveDriveEstimato1;
+import com.MAutils.PoseEstimation.SwerveDriveEstimator;
 import com.MAutils.Simulation.Simulatables.SwerveSimulation;
 import com.MAutils.Simulation.SimulationManager;
 import com.MAutils.Swerve.IOs.Gyro.Gyro;
@@ -48,7 +48,7 @@ public class SwerveSystem extends SubsystemBase {
     // private static SwerveSystem instance;
 
     private SwerveState currentState = new SwerveState("NONE");
-    private SwerveDriveEstimato1 swerveDriveEstimator;
+    private SwerveDriveEstimator swerveDriveEstimator;
 
     private SwerveSetpoint currentSetpointMA = new SwerveSetpoint(
             new ChassisSpeeds(),
@@ -95,45 +95,44 @@ public class SwerveSystem extends SubsystemBase {
     private Translation2d totalDelta = new Translation2d(),  deltaDistance;
 
     public SwerveSystem(SwerveSystemConstants swerveConstants) {
-        super();
-        this.swerveConstants = swerveConstants;
 
-        swerveModules = swerveConstants.getModules();
-        gyro = swerveConstants.getGyro();
+    super();
+    this.swerveConstants = swerveConstants;
 
-        currentLimits = () -> swerveConstants.DEFUALT;
+    swerveModules = swerveConstants.getModules();
+    gyro = swerveConstants.getGyro();
 
-        swerveSetpointGenerator = new SwerveSetpointGenerator(swerveConstants.getRobotConfig(),
-                swerveConstants.MAX_STEER_VELOCITY_RADS);
+    currentLimits = () -> swerveConstants.DEFUALT;
 
-        if (!Robot.isReal()) {
-            SimulationManager.registerSimulatable(new SwerveSimulation(swerveConstants));
-        }
+    swerveSetpointGenerator = new SwerveSetpointGenerator(swerveConstants.getRobotConfig(),
+            swerveConstants.MAX_STEER_VELOCITY_RADS);
 
-        swerveDriveEstimator = new SwerveDriveEstimato1(swerveConstants, this);
+    if (!Robot.isReal()) {
+        SimulationManager.registerSimulatable(new SwerveSimulation(swerveConstants));
+    }
 
-        PhoenixOdometryThread.getInstance(swerveConstants).start();
+    PhoenixOdometryThread.getInstance(swerveConstants).start();
 
-        odometryLock.lock();
-        gyro.update();
-        for (var module : swerveModules) {
-            module.update();
-        }
-        odometryLock.unlock();
+    odometryLock.lock();
+    gyro.update();
+    for (var module : swerveModules) {
+        module.update();
+    }
+    odometryLock.unlock();
 
-        for (int i = 0; i < swerveModules.length; i++) {
-            currentStates[i] = swerveModules[i].getState();
-        }
+    for (int i = 0; i < swerveModules.length; i++) {
+        currentStates[i] = swerveModules[i].getState();
+    }
 
-        for (int i = 0; i < swerveModules.length; i++) {
-            currentPositions[i] = swerveModules[i].getPosition();
-        }
+    for (int i = 0; i < swerveModules.length; i++) {
+        currentPositions[i] = swerveModules[i].getPosition();
+    }
 
-        // swerveSetpoint = new SwerveSetpoint(new ChassisSpeeds(0, 0, 0),
-        // currentStates, DriveFeedforwards.zeros(4));
+    swerveDriveEstimator = new SwerveDriveEstimator(swerveConstants, this);
 
-        swerveSetPointGeneratorMA = new SwerveSetPointGeneratorMA(swerveConstants.kinematics,
-                swerveConstants.modulesLocationArry);
+    swerveSetPointGeneratorMA = new SwerveSetPointGeneratorMA(swerveConstants.kinematics,
+            swerveConstants.modulesLocationArry);
+
 
     }
 
@@ -183,7 +182,7 @@ public class SwerveSystem extends SubsystemBase {
 
         currentSpeeds = swerveConstants.kinematics.toChassisSpeeds(currentStates);
 
-        swerveDriveEstimator.updateOdometry();
+        swerveDriveEstimator.update();
 
         if (getTiltAngle() < 5) {
             PoseEstimationMA.getInstance().addOdometryObservation(new OdometryObservation(
@@ -200,6 +199,10 @@ public class SwerveSystem extends SubsystemBase {
     // Public Methods
     public SwerveModuleState[] getCurrentStates() {
         return currentStates;
+    }
+
+    public SwerveDriveEstimator getSwerveDriveEstimator() {
+        return swerveDriveEstimator;
     }
 
     public Rotation3d getRobotRotation() {
@@ -222,7 +225,7 @@ public class SwerveSystem extends SubsystemBase {
         if (DriverStationUtil.getAlliance() == Alliance.Blue) {
             return () -> getGyroData().yaw;
         }
-        return () -> getGyroData().yaw + 180;
+        return () -> (getGyroData().yaw + 180);
     }
 
     public SwerveModulePosition[] getCurrentPositions() {

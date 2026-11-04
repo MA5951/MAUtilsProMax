@@ -21,6 +21,8 @@ public class PoseEstimatorSource {
     public static final double BUFFER_DURATION = 1.5; // seconds
     private Twist2d interpolatedTwist = new Twist2d();
 
+    private static boolean reaset = false;
+
     private final TimeInterpolatableBuffer<Measurement> buffer = 
     TimeInterpolatableBuffer.createBuffer(
         (startValue, endValue, t) -> {
@@ -63,15 +65,17 @@ public class PoseEstimatorSource {
         buffer.addSample(timestamp, p);
     }
 
-   public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY, boolean isHardReset, Pose2d p) {
+    public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY, boolean isHardReset, Pose2d p) {
         if (twist2d == null) {
             MALog.log("PE/sorce/"+ name, "null");
             return;
         }
         if(isHardReset) {
             PoseEstimator.resetPose(p);
+            reaset = isHardReset;
             return;
-        }
+        } 
+        reaset = isHardReset;
         Twist2d delta = safeTwist(twist2d);
         double fxy = safePos(fomXY);
         double fth = safePos(fomTheta);
@@ -81,14 +85,21 @@ public class PoseEstimatorSource {
         MALog.log("Pose Estimator/Sources/"+ name +"/FOM XY", fxy);
         MALog.log("Pose Estimator/Sources/"+ name +"/FOM Theta", fth);
         MALog.log("Pose Estimator/Sources/"+ name +"/Timestemp", timestamp);
+        MALog.log("Pose Estimator/Sources/"+ name +"/HardReaset", isHardReset);
+        
         addMeasurement(delta, fxy, fth, timestamp);
     }
 
-    public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY) {
+    public void capture(Twist2d twist2d, double timestamp, double fomTheta, double fomXY, Pose2d p) {
         if (twist2d == null) {
             MALog.log("PE/sorce/"+ name, "null");
             return;
         }
+
+        if(isReaset()) {
+            return;
+        }
+        
         Twist2d delta = safeTwist(twist2d);
         double fxy = safePos(fomXY);
         double fth = safePos(fomTheta);
@@ -107,6 +118,10 @@ public class PoseEstimatorSource {
         double dy = Double.isFinite(t.dy) ? t.dy : 0.0;
         double dth = Double.isFinite(t.dtheta) ? t.dtheta : 0.0;
         return new Twist2d(dx, dy, dth);
+    }
+
+    public static boolean isReaset() {
+        return reaset;
     }
 
     private double safePos(Double v) {

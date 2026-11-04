@@ -3,6 +3,10 @@ package frc.robot.Subsystems.Swerve;
 import com.MAutils.Swerve.Controllers.AngleAdjustController;
 import com.MAutils.Swerve.Controllers.FieldCentricDrive;
 import com.MAutils.Swerve.Controllers.XYAdjustControllerPID;
+
+import java.util.function.Supplier;
+
+import com.MAutils.Logger.MALog;
 import com.MAutils.PoseEstimation.PoseEstimator;
 import com.MAutils.Swerve.SwerveSystemConstants;
 import com.MAutils.Swerve.SwerveSystemConstants.GearRatio;
@@ -13,6 +17,7 @@ import com.MAutils.Swerve.Utils.SwerveController;
 import com.MAutils.Swerve.Utils.SwerveState;
 import com.MAutils.Utils.GainConfig;
 import com.MAutils.Vision.IOs.VisionCameraIO.PoseEstimateType;
+import com.MAutils.Vision.Util.LimelightHelpers;
 import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.RobotCentric;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.GeometryUtil;
@@ -27,16 +32,19 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import frc.robot.PortMap;
 import frc.robot.RobotContainer;
+import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.VisionConstants;
 import frc.robot.Util.Field;
 
 public class SwerveConstants {
 
-
         public static final GainConfig driveGainConfig = new GainConfig().withKV(0.7).withKS(0.27).withKP(1.2);
         public static final GainConfig turnGainConfig = new GainConfig().withKP(55).withKS(0.3);
 
         public static double setPoint;
+        public static double angle = 0;
+
+        public static final double l = 0.5969;
 
         // Swerve System Constants
         public static final SwerveSystemConstants SWERVE_CONSTANTS = new SwerveSystemConstants()
@@ -69,19 +77,20 @@ public class SwerveConstants {
                         .withContinuesInput(-180, 180)
                         .withTolerance(3);
 
-        public static final PIDController REL_X_PID_CONTROLLER = new PIDController(3, 0, 0).withTolerance(0.05);// front // 3
+        public static final PIDController REL_X_PID_CONTROLLER = new PIDController(3, 0, 0).withTolerance(0.05);// front
+                                                                                                                // // 3
 
         public static final PIDController REL_Y_PID_CONTROLLER = new PIDController(3.3, 0, 0).withTolerance(0.05);
 
-        public static final PIDController ABS_X_PID_CONTROLLER = new PIDController(0, 0, 0).withTolerance(0.05);// front // 3.5
+        public static final PIDController ABS_X_PID_CONTROLLER = new PIDController(0, 0, 0).withTolerance(0.05);// front
+                                                                                                                // //
+                                                                                                                // 3.5
 
         public static final PIDController ABS_Y_PID_CONTROLLER = new PIDController(2.5, 0, 0).withTolerance(0.05);
 
         public static final PathConstraints constraints = new PathConstraints(
                         4, 3,
                         Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-
 
         // Swerve Drive Controllers
         public static final FieldCentricDrive FIELD_CENTRIC_DRIVE = new FieldCentricDrive(
@@ -91,8 +100,10 @@ public class SwerveConstants {
         public static final AngleAdjustController ANGLE_ADJUST_CONTROLLER = new AngleAdjustController(SWERVE_CONSTANTS,
                         REL_PID_CONTROLLER);
 
-        public static final XYAdjustControllerPID XY_ADJUST_CONTROLLER = new XYAdjustControllerPID(SWERVE_CONSTANTS, REL_X_PID_CONTROLLER,
-         REL_Y_PID_CONTROLLER, ()-> VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
+        public static final XYAdjustControllerPID XY_ADJUST_CONTROLLER = new XYAdjustControllerPID(SWERVE_CONSTANTS,
+                        REL_X_PID_CONTROLLER,
+                        REL_Y_PID_CONTROLLER,
+                        () -> VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
         // Swerve States
         public static final SwerveState NONE = new SwerveState("NONE").withXY(0, 0).withOmega(0);
 
@@ -104,65 +115,68 @@ public class SwerveConstants {
                         .withOnStateEnter(() -> FIELD_CENTRIC_DRIVE.withSclers(0.3, 0.20))
                         .withSpeeds(FIELD_CENTRIC_DRIVE);
 
-
-
         public static final SwerveState REL_CENTRING = new SwerveState("REL Centring")
                         .withOnStateEnter(() -> {
                                 ANGLE_ADJUST_CONTROLLER.withPIDController(REL_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(0);
+                                ANGLE_ADJUST_CONTROLLER.withSetPoint(getAngleToHubAbs());
                                 ANGLE_ADJUST_CONTROLLER
-                                                .withGyroSupplier(() -> VisionConstants.LL.getCameraIO().getTag().txnc);
+                                                .withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
                         }).withSpeeds(ANGLE_ADJUST_CONTROLLER);
 
-        public static final SwerveState ABS_UNLOCKED = new SwerveState(" Absolute Unlocked")
-                        .withOnStateEnter(() -> {
-                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_MOTION_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(() -> getAbsAngleToTargetFuter());
-                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-                                FIELD_CENTRIC_DRIVE.withSclers(0.12, 0.1);
-                        })
-                        .withOmega(ANGLE_ADJUST_CONTROLLER)
-                        .withXY(FIELD_CENTRIC_DRIVE);
+        // public static final SwerveState ABS_UNLOCKED = new SwerveState(" Absolute
+        // Unlocked")
+        // .withOnStateEnter(() -> {
+        // ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_MOTION_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withSetPoint(() -> getAbsAngleToTargetFuter());
+        // ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+        // FIELD_CENTRIC_DRIVE.withSclers(0.12, 0.1);
+        // })
+        // .withOmega(ANGLE_ADJUST_CONTROLLER)
+        // .withXY(FIELD_CENTRIC_DRIVE);
 
+        // public static final SwerveState REL_UNLOCKED = new SwerveState("REL
+        // Unlocked")
+        // .withOnStateEnter(() -> {
+        // ANGLE_ADJUST_CONTROLLER.withPIDController(REL_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withSetPoint(0);
+        // ANGLE_ADJUST_CONTROLLER.withGyroSupplier(()->VisionConstants.LL.getCameraIO().getTag().txnc);
+        // FIELD_CENTRIC_DRIVE.withSclers(0.2, 0.1);
+        // })
+        // .withOmega(ANGLE_ADJUST_CONTROLLER)
+        // .withXY(FIELD_CENTRIC_DRIVE);
 
-        public static final SwerveState REL_UNLOCKED = new SwerveState("REL Unlocked")
-                        .withOnStateEnter(() -> {
-                                ANGLE_ADJUST_CONTROLLER.withPIDController(REL_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(0);
-                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(()->VisionConstants.LL.getCameraIO().getTag().txnc);
-                                FIELD_CENTRIC_DRIVE.withSclers(0.2, 0.1);
-                        })
-                        .withOmega(ANGLE_ADJUST_CONTROLLER)
-                        .withXY(FIELD_CENTRIC_DRIVE);
+        // public static final SwerveState XY_ADJUST_REL = new SwerveState("XY Adjust
+        // REL").withOnStateEnter(() -> {
+        // XY_ADJUST_CONTROLLER.withFieldRelative(true);
+        // XY_ADJUST_CONTROLLER.withXYControllers(REL_X_PID_CONTROLLER,
+        // REL_Y_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
+        // ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+        // XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()),
+        // false);
+        // XY_ADJUST_CONTROLLER.withMeasurment(()->
+        // VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
+        // XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+        // })
+        // .withXY(XY_ADJUST_CONTROLLER)
+        // .withOmega(ANGLE_ADJUST_CONTROLLER);
 
-
-        public static final SwerveState XY_ADJUST_REL = new SwerveState("XY Adjust REL").withOnStateEnter(() -> {
-                                XY_ADJUST_CONTROLLER.withFieldRelative(true);
-                                XY_ADJUST_CONTROLLER.withXYControllers(REL_X_PID_CONTROLLER, REL_Y_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
-                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-                                XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()), false);
-                                XY_ADJUST_CONTROLLER.withMeasurment(()-> VisionConstants.LL.getCameraIO().getPoseEstimate(PoseEstimateType.MT2).pose);
-                                XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-                        })
-                        .withXY(XY_ADJUST_CONTROLLER)
-                        .withOmega(ANGLE_ADJUST_CONTROLLER);
-
-        public static final SwerveState XY_ADJUST_ABS = new SwerveState("XY Adjust ABS").withOnStateEnter(() -> {
-                                XY_ADJUST_CONTROLLER.withFieldRelative(true);
-                                XY_ADJUST_CONTROLLER.withXYControllers(ABS_X_PID_CONTROLLER, ABS_Y_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
-                                ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
-                                ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-                                XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()), false);
-                                XY_ADJUST_CONTROLLER.withMeasurment(()-> PoseEstimator.getCurrentPose());
-                                XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
-                        })
-                        .withXY(XY_ADJUST_CONTROLLER)
-                        .withOmega(ANGLE_ADJUST_CONTROLLER);
-
-
+        // public static final SwerveState XY_ADJUST_ABS = new SwerveState("XY Adjust
+        // ABS").withOnStateEnter(() -> {
+        // XY_ADJUST_CONTROLLER.withFieldRelative(true);
+        // XY_ADJUST_CONTROLLER.withXYControllers(ABS_X_PID_CONTROLLER,
+        // ABS_Y_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withPIDController(ABS_PID_CONTROLLER);
+        // ANGLE_ADJUST_CONTROLLER.withSetPoint(180);
+        // ANGLE_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+        // XY_ADJUST_CONTROLLER.withXYSetPoint(() -> new Pose2d(3,4,new Rotation2d()),
+        // false);
+        // XY_ADJUST_CONTROLLER.withMeasurment(()-> PoseEstimator.getCurrentPose());
+        // XY_ADJUST_CONTROLLER.withGyroSupplier(Swerve.getInstance().getAbsYawSupplier());
+        // })
+        // .withXY(XY_ADJUST_CONTROLLER)
+        // .withOmega(ANGLE_ADJUST_CONTROLLER);
 
         public static final SwerveState RAMP_40 = new SwerveState("RAMP")
                         .withOnStateEnter(() -> {
@@ -209,8 +223,51 @@ public class SwerveConstants {
         }
 
         public static double getCloses45Deg() {
-                int index = (int)((Swerve.getInstance().getAbsYaw())/90);
-                return (90*index) + (45 * Math.signum(Swerve.getInstance().getAbsYaw()));
+                int index = (int) ((Swerve.getInstance().getAbsYaw()) / 90);
+                return (90 * index) + (45 * Math.signum(Swerve.getInstance().getAbsYaw()));
+        }
+
+        public static double getHubAngle() {
+                if (Vision.getInstance().getTagID() == 0)
+                        return 0;
+                double d = Vision.getInstance().getRawTrigDistance();
+                MALog.log("Subsystems/Swerve/d", d);
+
+                double a = 90 - LimelightHelpers.getTX(VisionConstants.LL.getCameraIO().getName())
+                                - Swerve.getInstance().getAbsYaw();
+                MALog.log("Subsystems/Swerve/a", a);
+
+                double x = d * Math.cos(Math.toRadians(a));
+                MALog.log("Subsystems/Swerve/x", x);
+
+                double y = d * Math.sin(Math.toRadians(a));
+                MALog.log("Subsystems/Swerve/y", y);
+
+                // חישוב הזווית האבסולוטית של ההאב ביחס לאפס של הג'יירו
+                double absoluteTargetAngle = Math.toDegrees(Math.atan((y + l) / x) - a);//
+
+                return absoluteTargetAngle - a;
+        }
+
+        // public static double ContinuesInput(double a) {
+        // double modulus = 360.0;
+        // double minimumInput = -180.0;
+        // double maximumInput = 180.0;
+
+        // // מניעת שגיאות עיגול/שארית שלילית ב-Java
+        // a = a - Math.floor((a - minimumInput) / modulus) * modulus;
+
+        // return a;
+        // }
+
+        public static double getAngleToHubAbs() {
+                double xDis = Field.getHub().getX() - poseAdjust(PoseEstimator.getCurrentPose(),
+                                VisionConstants.LL_OFFSET).getX();
+                double yDis = Field.getHub().getY() - poseAdjust(PoseEstimator.getCurrentPose(),
+                                VisionConstants.LL_OFFSET).getY();
+                double angle = Math.atan2(yDis, xDis);
+
+                return Math.toDegrees(angle);
         }
 
 

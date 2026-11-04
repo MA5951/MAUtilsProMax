@@ -51,7 +51,7 @@ public class SwerveDriveEstimator {
 
         PoseEstimator.addSource(odometrySource);
 
-        lastPose2d= PoseEstimator.getCurrentPose();
+        lastPose2d= new Pose2d();
 
     }
 
@@ -74,15 +74,22 @@ public class SwerveDriveEstimator {
         return swerveSystem.getTiltAngle() >= MAX_UPDATE_ANGLE;
     }
 
+    public void reasetPose(Pose2d newP) {
+        od.resetPose(newP);
+    }
+
     public void update() {
         isCollision = isCollisionDetected();
         isTilted = isTilted();
-        MALog.log("PE/ swerve/isCollisionDetected", isCollision);
-        MALog.log("PE/ swerve/isTilted", isTilted);
+        MALog.log("PE/swerve/isCollisionDetected", isCollision);
+        MALog.log("PE/swerve/isTilted", isTilted);
+
+        od.update(swerveSystem.getRobotRotation2d(),swerveSystem.getCurrentPositions());
 
         if(!isCollision && ! isTilted) {
             od.update(swerveSystem.getRobotRotation2d(),swerveSystem.getCurrentPositions());
             currPose2d = od.getPoseMeters();
+            MALog.log("PE/swerve/pose swerve", currPose2d);
             loopTwistSum.dx = currPose2d.getX()-lastPose2d.getX();
             loopTwistSum.dy = currPose2d.getY()-lastPose2d.getY();
             loopTwistSum.dtheta = swerveSystem.getGyroDelta();
@@ -100,6 +107,6 @@ public class SwerveDriveEstimator {
             }
         }
 
-        odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp(), getRotationFOM(), getTranslationFOM(), false, od.getPoseMeters());
+        odometrySource.capture(loopTwistSum, Timer.getFPGATimestamp(), getRotationFOM(), getTranslationFOM(), od.getPoseMeters());
     }
 }

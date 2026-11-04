@@ -65,6 +65,7 @@ public class PoseEstimator {
         poseBeforeHistory = newPose;
         currentPose = newPose;
         lastUpdateTime = now;
+        
 
         TelemetryLogger.logPoseEstimator(
             "Pose reset - X:" + newPose.getX()

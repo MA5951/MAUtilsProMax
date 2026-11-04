@@ -125,6 +125,8 @@ public class AprilTagCamera extends Camera {
             
             poseEstimatorSource.capture(visionTwsit, Timer.getTimestamp(), oFom, xyFom, aprilTagFilters.isNeededToResetPose(), visionPose);
             MALog.log("Subsystems/Vision/Cameras/" + name + "/Odometry", "Odometry captured");
+            MALog.log("Subsystems/Vision/Cameras/" + name + "/reasetPose", aprilTagFilters.isNeededToResetPose());
+
         
             
         }
