@@ -60,7 +60,7 @@ public class GyroPiegon implements GyroIO {
 
     public void updateGyroData(GyroData gyroData) {
         gyroData.isConnected = BaseStatusSignal.isAllGood(yawAngle, pitchAngle, rollAngle, yawRate);
-        gyroData.yaw = yawAngle.getValue().in(Degrees) + RobotContainer.autoSelector.getSelectedAuto().getYawOffset();
+        gyroData.yaw = yawAngle.getValue().in(Degrees) ;//+ RobotContainer.autoSelector.getSelectedAuto().getYawOffset();
         gyroData.yawVelocity = yawRate.getValue().in(DegreesPerSecond);
         gyroData.pitch = pitchAngle.getValue().in(Degrees);
         gyroData.roll = rollAngle.getValue().in(Degrees);

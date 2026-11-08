@@ -10,65 +10,16 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 public class Swerve extends SwerveSystem{
     private static Swerve instance;
-    private double lastSpeed;
-    private double deltaSpeed;
-    private double deltaCurrent;
-
-
-    private boolean isRampFlag = false;
 
     private Swerve() {
         super(SwerveConstants.SWERVE_CONSTANTS);
-
-        
+        SwerveConstants.angle = getAbsYaw(); 
     }
 
-
-    public boolean atPointForShooting() {
-        return true;
-    }
-
-    public boolean atPointForFeeding() {
-        return true;
-    }
-
-    public boolean atPointForFeedingInMotion() {
-        return true;
-    }
 
     public double getVelocityVector() {
         return Math.sqrt(Math.pow(getChassisSpeeds().vxMetersPerSecond,2) + Math.pow(getChassisSpeeds().vyMetersPerSecond,2));
     }
-
-   
-
-
-    @Override
-    public void periodic() {
-        super.periodic();
-
-        if (getTiltAngle() > 5) {
-            isRampFlag = true;
-        }
-
-        MALog.log("/Subsystems/Swerve/tiltAngle", getTiltAngle());
-    }
-
-    public void resetRampFlag() {
-        isRampFlag = false;
-    }
-
-
-    public boolean isRampFlag() {
-        return isRampFlag;
-    }
-
-    public boolean isModuleStuck() {
-        deltaSpeed = Math.abs(getCurrentStates()[1].speedMetersPerSecond) - lastSpeed;
-        lastSpeed = Math.abs(lastSpeed);
-        return (deltaSpeed < 0.03) && (Math.abs(getSwerveModuleData()[1].driveCurrent)> 15);
-    }
-
 
    
 
@@ -77,6 +28,19 @@ public class Swerve extends SwerveSystem{
             instance = new Swerve();
         }
         return instance;
+    }
+
+    @Override
+    public void periodic() {
+        super.periodic();
+
+        MALog.log("Subsystems/Swerve/tilt angle", getTiltAngle());
+        MALog.log("Subsystems/Swerve/hub angle rel", SwerveConstants.getHubAngle());
+        MALog.log("Subsystems/Swerve/hub angle abs", SwerveConstants.getAngleToHubAbs());
+
+       // MALog.log("Subsystems/Swerve/continu ", SwerveConstants.ContinuesInput(getAbsYaw()));
+
+
     }
 
 
