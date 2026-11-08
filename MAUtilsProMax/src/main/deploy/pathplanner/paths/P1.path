@@ -33,10 +33,15 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "coast",
-      "waypointRelativePos": 0.4051316677920307,
+      "name": "coastEvent",
+      "waypointRelativePos": 0.41323430114787213,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "coast"
+        }
+      }
     }
   ],
   "globalConstraints": {

@@ -7,8 +7,11 @@ import com.MAutils.Logger.MALog;
 import com.MAutils.Swerve.SwerveSystem;
 import com.MAutils.Swerve.SwerveSystemConstants;
 import com.MAutils.Swerve.Utils.SwerveController;
+import com.pathplanner.lib.util.GeometryUtil;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import frc.robot.Subsystems.Vision.VisionConstants;
 
 public class AngleAdjustController extends SwerveController {
 
@@ -73,6 +76,14 @@ public class AngleAdjustController extends SwerveController {
 
     public double getSetpoint() {
         return pidController.getSetpoint();
+    }
+
+    public static double getAbsAngleToTarget(Pose2d currPose2d, Pose2d targetPose2d) {
+        double xDis = targetPose2d.getX() - currPose2d.getX();
+        double yDis = targetPose2d.getY() - currPose2d.getY();
+        double angle = Math.atan2(yDis, xDis);
+
+        return Math.toDegrees(angle);
     }
 
     @Override
